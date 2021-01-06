@@ -10,7 +10,11 @@ from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
 from keras.optimizers import Adam
 from keras.initializers import RandomUniform
+import warnings
 
+warnings.simplefilter('ignore', np.RankWarning)
+
+# GreedyNN_MultiPoint
 class GreedyNN_MP():
 	def __init__(self, img_shape, n_gen_img, evaluator, noise_dim = 100, fixed_noise = False, filepath = None):
 		self.img_shape = img_shape
@@ -88,22 +92,21 @@ class GreedyNN_MP():
 					best_img = gen_imgs[ascending_indice][-1]
 
 				# Train the generator
-				img_A = gen_imgs[ascending_indice][-1]
-				img_B = gen_imgs[ascending_indice][-2]
-				fit_A = gen_imgs_fitness[ascending_indice][-1]
-				fit_B = gen_imgs_fitness[ascending_indice][-2]
-				# Aが頂点でBを通る二次関数で近似
-				# y = [0]                                        * (x - [1]  ) ** 2 + [2]
-				# y = ((fit_B - fit_A) / ((img_B - img_A) ** 2)) * (x - img_A) ** 2 + fit_A
-				approx_param = [(fit_B - fit_A) / ((img_B - img_A) ** 2), img_A, fit_A]
-				approx_fitness = np.apply_along_axis(
-					lambda x: np.sum(approx_param[0] * (x - approx_param[1]) ** 2) + approx_param[2],
-					2,
-					gen_imgs)
-				fitness_pred_gap = gen_imgs_fitness - approx_fitness
-				fitness_pred_gap_ascending_indice = np.unravel_index(np.argsort(fitness_pred_gap.flatten()), fitness_pred_gap.shape)
+				x_len = self.img_shape[1] * 2 + 1
+				x = np.ones((batch_size * self.img_shape[0], x_len), float)
+				for i in range(self.img_shape[1]):
+					x[:, i*2] = gen_imgs[:, :, i].flatten()
+					x[:, i*2+1] = gen_imgs[:, :, i].flatten() ** 2
 
-				y_raw = np.append([best_img, img_A, img_B], gen_imgs[fitness_pred_gap_ascending_indice][-(self.img_shape[0] - 3):], axis=0)
+				# 近似
+				fitness_pred_error = +np.copy(gen_imgs_fitness)
+				for i in range(x_len):
+					p = np.polyfit(x[:, i], gen_imgs_fitness.flatten(), 2)
+					y_pred = (p[0] * x[:, i] ** 2 + p[1] * x[:, i] + p[2]) / x.shape[1]
+					fitness_pred_error -= np.reshape(y_pred, fitness_pred_error.shape)
+				error_ascending_indice = np.unravel_index(np.argsort(fitness_pred_error.flatten()), fitness_pred_error.shape)
+
+				y_raw = np.append([best_img], gen_imgs[error_ascending_indice][-(self.img_shape[0] - 1):], axis=0)
 				y = np.tile(y_raw, (batch_size, 1, 1))
 				g_loss = self.generator.train_on_batch(noise, y)
 
@@ -129,7 +132,7 @@ class GreedyNN_MP():
 						np.mean(stddev),
 						g_loss,
 						np.mean(gen_imgs_fitness),
-						fit_A,
+						gen_imgs_fitness[ascending_indice][-1],
 						best_fitness,
 					])
 
@@ -155,7 +158,7 @@ if __name__ == '__main__':
 		return -10 * len(x) - np.sum(x ** 2) + 10 * np.sum(np.cos(2 * np.pi * x))
 
 	nn = GreedyNN_MP(
-		img_shape = (5, 5),
+		img_shape = (3, 5),
 		n_gen_img = 50,
 		evaluator = sphere_offset,
 		noise_dim = 1,
