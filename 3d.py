@@ -20,7 +20,7 @@ def rastrigin_offset(x_):
 	x = (np.copy(x_) - 0.5) * 5.12
 	return -10 * len(x) - np.sum(x ** 2) + 10 * np.sum(np.cos(2 * np.pi * x))
 
-evaluator = rastrigin_offset
+evaluator = sphere
 
 fig = plt.figure(figsize = (10, 6))
 ax = fig.gca(projection='3d')
@@ -35,6 +35,8 @@ ax.plot_wireframe(x[0], x[1], y, color='blue', linewidth=0.1)
 # sampling
 N = 20
 x = np.random.rand(N, 2) * 2 - 1
+# x = np.random.rand(N, 2) * 0.25 - (0.25 / 2)
+# x[0, 0] = x[0, 1] = 0.37
 y = np.apply_along_axis(evaluator, 1, x)
 
 # fit
