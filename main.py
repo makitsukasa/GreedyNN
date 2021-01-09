@@ -77,7 +77,7 @@ for loop in range(n_loop):
 	f_greedynn[loop] = f
 
 	greedynn_mp_ = greedynn_mp.GreedyNN_MP(
-		img_shape = (5, n_dim),
+		img_shape = (10, n_dim),
 		n_gen_img = n_gen_img,
 		evaluator = evaluator,
 		noise_dim = 1,
