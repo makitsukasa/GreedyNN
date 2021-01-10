@@ -34,9 +34,9 @@ def rastrigin_offset(x_):
 	return -10 * len(x) - np.sum(x ** 2) + 10 * np.sum(np.cos(2 * np.pi * x))
 
 n_dim = 20
-n_loop = 1
-evaluator = sphere          ; n_gen_img = 100; n_epoch = 100
-# evaluator = sphere          ; n_gen_img = 100; n_epoch = 1000
+n_loop = 10
+# evaluator = sphere          ; n_gen_img = 100; n_epoch = 100
+evaluator = sphere          ; n_gen_img = 100; n_epoch = 1000
 # evaluator = sphere_offset   ; n_gen_img = 100; n_epoch = 100
 # evaluator = sphere_offset   ; n_gen_img = 100; n_epoch = 1000
 # evaluator = ackley          ; n_gen_img = 100; n_epoch = 1000

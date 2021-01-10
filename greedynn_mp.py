@@ -99,9 +99,10 @@ class GreedyNN_MP():
 					x[:, i*2+1] = gen_imgs[:, :, i].flatten() ** 2
 
 				# 近似
-				fitness_pred_error = +np.copy(gen_imgs_fitness)
+				fitness_pred_error = np.copy(gen_imgs_fitness)
 				for i in range(x_len):
 					p = np.polyfit(x[:, i], gen_imgs_fitness.flatten(), 2)
+					p[0] = max(p[0], 0)
 					y_pred = (p[0] * x[:, i] ** 2 + p[1] * x[:, i] + p[2]) / x.shape[1]
 					fitness_pred_error -= np.reshape(y_pred, fitness_pred_error.shape)
 				error_ascending_indice = np.unravel_index(np.argsort(fitness_pred_error.flatten()), fitness_pred_error.shape)
