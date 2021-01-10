@@ -36,7 +36,7 @@ def rastrigin_offset(x_):
 n_dim = 20
 n_loop = 10
 # evaluator = sphere          ; n_gen_img = 100; n_epoch = 100
-evaluator = sphere          ; n_gen_img = 100; n_epoch = 1000
+# evaluator = sphere          ; n_gen_img = 100; n_epoch = 1000
 # evaluator = sphere_offset   ; n_gen_img = 100; n_epoch = 100
 # evaluator = sphere_offset   ; n_gen_img = 100; n_epoch = 1000
 # evaluator = ackley          ; n_gen_img = 100; n_epoch = 1000
@@ -46,7 +46,7 @@ evaluator = sphere          ; n_gen_img = 100; n_epoch = 1000
 # evaluator = rastrigin       ; n_gen_img = 100; n_epoch = 1000
 # evaluator = rastrigin       ; n_gen_img = 100; n_epoch = 10000
 # evaluator = rastrigin_offset; n_gen_img = 100; n_epoch = 1000
-# evaluator = rastrigin_offset; n_gen_img = 100; n_epoch = 10000
+evaluator = rastrigin_offset; n_gen_img = 100; n_epoch = 10000
 
 batch_size = 10
 # y = np.array([0.0 for _ in range(n_dim)])
