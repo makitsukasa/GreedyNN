@@ -5,6 +5,7 @@ import cheatynn
 import greedynn
 import greedynn_rand
 import greedynn_mp
+import greedynn_mp_rand
 import randgen
 import jgg
 import cmaes
@@ -35,7 +36,7 @@ def rastrigin_offset(x_):
 	return -10 * len(x) - np.sum(x ** 2) + 10 * np.sum(np.cos(2 * np.pi * x))
 
 n_dim = 20
-n_loop = 1
+n_loop = 10
 evaluator = sphere          ; n_gen_img = 100; n_epoch = 100
 # evaluator = sphere          ; n_gen_img = 100; n_epoch = 1000
 # evaluator = sphere_offset   ; n_gen_img = 100; n_epoch = 100
@@ -59,6 +60,7 @@ f_cheatynn = [None for _ in range(n_loop)]
 f_greedynn = [None for _ in range(n_loop)]
 f_greedynn_rand = [None for _ in range(n_loop)]
 f_greedynn_mp = [None for _ in range(n_loop)]
+f_greedynn_mp_rand = [None for _ in range(n_loop)]
 f_randgen = [None for _ in range(n_loop)]
 f_jgg = [None for _ in range(n_loop)]
 f_cmaes = [None for _ in range(n_loop)]
@@ -96,6 +98,15 @@ for loop in range(n_loop):
 	f = greedynn_mp_.train(n_epoch=n_epoch, batch_size=batch_size)
 	f_greedynn_mp[loop] = f
 
+	greedynn_mp_rand_ = greedynn_mp_rand.GreedyNN_MP_RAND(
+		img_shape = (10, n_dim),
+		n_gen_img = n_gen_img,
+		evaluator = evaluator,
+		noise_dim = 1,
+		filepath = f"{bench_dir}greedynn_mp_rand_{loop}.csv")
+	f = greedynn_mp_rand_.train(n_epoch=n_epoch, batch_size=batch_size)
+	f_greedynn_mp_rand[loop] = f
+
 	# cmaes_ = cmaes.CMAES(
 	# 	n_dim = n_dim,
 	# 	evaluator = evaluator)
@@ -113,9 +124,10 @@ for loop in range(n_loop):
 print(env_str)
 # print("swap   :", np.mean(f_swapgan))
 # print("fswap  :", np.mean(f_fswapgan))
-print("greed  :", np.mean(f_greedynn))
-print("greedrd:", np.mean(f_greedynn_rand))
-print("greedmp:", np.mean(f_greedynn_mp))
+print("greedy :", np.mean(f_greedynn))
+print("grdrd  :", np.mean(f_greedynn_rand))
+print("grdmp  :", np.mean(f_greedynn_mp))
+print("grdmprd:", np.mean(f_greedynn_mp_rand))
 # print("jgg    :", np.mean(f_jgg))
 # print("cmaes  :", np.mean(f_cmaes))
 print("eda    :", np.mean(f_pbilc))

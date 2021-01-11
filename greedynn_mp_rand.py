@@ -15,7 +15,7 @@ import warnings
 warnings.simplefilter('ignore', np.RankWarning)
 
 # GreedyNN_MultiPoint
-class GreedyNN_MP():
+class GreedyNN_MP_RAND():
 	def __init__(self, img_shape, n_gen_img, evaluator, noise_dim = 100, fixed_noise = False, filepath = None):
 		self.img_shape = img_shape
 		self.n_gen_img = n_gen_img
@@ -57,6 +57,9 @@ class GreedyNN_MP():
 		best_fitness = np.NINF
 		best_img = np.random.uniform(-1.0, 1.0, (self.img_shape[1]))
 		noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
+		max_n_eval = n_epoch * self.n_gen_img
+		n_eval = 0
+		g_loss = 1.0
 
 		if self.filepath:
 			f = open(self.filepath, mode = "w")
@@ -72,7 +75,7 @@ class GreedyNN_MP():
 				"fitness_best_so_far",
 			])
 
-		for epoch in range(n_epoch):
+		while n_eval < max_n_eval:
 			for iteration in range(n_batches):
 				# ---------------------
 				#  Generator learning
@@ -81,7 +84,11 @@ class GreedyNN_MP():
 				if not self.fixed_noise:
 					noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
 				gen_imgs = self.generator.predict(noise)
+				randomly_gen_size = np.int(batch_size * min(g_loss, 1.0))
+				randomly_gen_imgs = np.random.rand(randomly_gen_size, gen_imgs.shape[1], gen_imgs.shape[2])
+				gen_imgs = np.vstack((gen_imgs, randomly_gen_imgs))
 				gen_imgs_fitness = np.apply_along_axis(self.evaluator, 2, gen_imgs)
+				n_eval += gen_imgs.shape[0] * gen_imgs.shape[1]
 
 				# swap
 				# best_index = np.argmax(gen_imgs_fitness)
@@ -93,7 +100,7 @@ class GreedyNN_MP():
 
 				# Train the generator
 				x_len = self.img_shape[1] * 2 + 1
-				x = np.ones((batch_size * self.img_shape[0], x_len), float)
+				x = np.ones((gen_imgs.shape[0] * gen_imgs.shape[1], x_len), float)
 				for i in range(self.img_shape[1]):
 					x[:, i*2] = gen_imgs[:, :, i].flatten()
 					x[:, i*2+1] = gen_imgs[:, :, i].flatten() ** 2
@@ -119,10 +126,9 @@ class GreedyNN_MP():
 				# progress
 				# print ("epoch:%d, iter:%d,  [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epoch, iteration, d_loss[0], 100*d_loss[1], g_loss))
 				print ("epoch:%d/%d, iter:%d/%d, [G loss: %f] [mean: %f best: %f]" %
-					(epoch+1, n_epoch, iteration+1, n_batches, g_loss, np.mean(gen_imgs_fitness), best_fitness))
+					(n_eval, max_n_eval, iteration+1, n_batches, g_loss, np.mean(gen_imgs_fitness), best_fitness))
 
-				n_eval = (epoch * n_batches + iteration + 1) * batch_size * self.img_shape[0]
-				print(f"{n_eval}/{batch_size * n_batches * n_epoch * self.img_shape[0]} fitness:{np.mean(gen_imgs_fitness)}, {best_fitness}")
+				print(f"{n_eval}/{max_n_eval}, {iteration+1}/{n_batches} fitness:{np.mean(gen_imgs_fitness)}, {best_fitness}")
 
 				mean = np.mean(gen_imgs, axis=0)
 				stddev = np.std(gen_imgs, axis=0)
@@ -133,7 +139,7 @@ class GreedyNN_MP():
 				if self.filepath:
 					csv_writer.writerow([
 						n_eval,
-						batch_size * n_batches * n_epoch * self.img_shape[0],
+						max_n_eval,
 						np.mean(mean),
 						np.mean(stddev),
 						g_loss,
@@ -163,7 +169,7 @@ if __name__ == '__main__':
 		x *= 5.12
 		return -10 * len(x) - np.sum(x ** 2) + 10 * np.sum(np.cos(2 * np.pi * x))
 
-	nn = GreedyNN_MP(
+	nn = GreedyNN_MP_RAND(
 		img_shape = (3, 5),
 		n_gen_img = 50,
 		evaluator = sphere_offset,
