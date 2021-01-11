@@ -3,6 +3,7 @@ import numpy as np
 import swapgan
 import cheatynn
 import greedynn
+import greedynn_rand
 import greedynn_mp
 import randgen
 import jgg
@@ -34,8 +35,8 @@ def rastrigin_offset(x_):
 	return -10 * len(x) - np.sum(x ** 2) + 10 * np.sum(np.cos(2 * np.pi * x))
 
 n_dim = 20
-n_loop = 10
-# evaluator = sphere          ; n_gen_img = 100; n_epoch = 100
+n_loop = 1
+evaluator = sphere          ; n_gen_img = 100; n_epoch = 100
 # evaluator = sphere          ; n_gen_img = 100; n_epoch = 1000
 # evaluator = sphere_offset   ; n_gen_img = 100; n_epoch = 100
 # evaluator = sphere_offset   ; n_gen_img = 100; n_epoch = 1000
@@ -46,7 +47,7 @@ n_loop = 10
 # evaluator = rastrigin       ; n_gen_img = 100; n_epoch = 1000
 # evaluator = rastrigin       ; n_gen_img = 100; n_epoch = 10000
 # evaluator = rastrigin_offset; n_gen_img = 100; n_epoch = 1000
-evaluator = rastrigin_offset; n_gen_img = 100; n_epoch = 10000
+# evaluator = rastrigin_offset; n_gen_img = 100; n_epoch = 10000
 
 batch_size = 10
 # y = np.array([0.0 for _ in range(n_dim)])
@@ -56,6 +57,7 @@ f_swapgan = [None for _ in range(n_loop)]
 f_fswapgan = [None for _ in range(n_loop)]
 f_cheatynn = [None for _ in range(n_loop)]
 f_greedynn = [None for _ in range(n_loop)]
+f_greedynn_rand = [None for _ in range(n_loop)]
 f_greedynn_mp = [None for _ in range(n_loop)]
 f_randgen = [None for _ in range(n_loop)]
 f_jgg = [None for _ in range(n_loop)]
@@ -75,6 +77,15 @@ for loop in range(n_loop):
 		filepath = f"{bench_dir}greedynn_{loop}.csv")
 	f = greedynn_.train(n_epoch=n_epoch, batch_size=batch_size)
 	f_greedynn[loop] = f
+
+	greedynn_rand_ = greedynn_rand.GreedyNN_RAND(
+		img_shape = (1, n_dim),
+		n_gen_img = n_gen_img,
+		evaluator = evaluator,
+		noise_dim = 1,
+		filepath = f"{bench_dir}greedynn_rand_{loop}.csv")
+	f = greedynn_rand_.train(n_epoch=n_epoch, batch_size=batch_size)
+	f_greedynn_rand[loop] = f
 
 	greedynn_mp_ = greedynn_mp.GreedyNN_MP(
 		img_shape = (10, n_dim),
@@ -103,6 +114,7 @@ print(env_str)
 # print("swap   :", np.mean(f_swapgan))
 # print("fswap  :", np.mean(f_fswapgan))
 print("greed  :", np.mean(f_greedynn))
+print("greedrd:", np.mean(f_greedynn_rand))
 print("greedmp:", np.mean(f_greedynn_mp))
 # print("jgg    :", np.mean(f_jgg))
 # print("cmaes  :", np.mean(f_cmaes))
