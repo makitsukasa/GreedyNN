@@ -55,9 +55,14 @@ def plot(filenames, xfield, yfields, yerrors, labels, xlabel, ylabel, log_scaled
 		denom = len(raw_datas[method_name])
 		for fieldname, field_data in method_data.items():
 			if all([i.is_integer() for i in datas[method_name][fieldname].values()]):
-				datas[method_name][fieldname] = list(map(lambda x: int(x) // denom, datas[method_name][fieldname].values()))
+				datas[method_name][fieldname] = np.array(list(map(lambda x: int(x) // denom, datas[method_name][fieldname].values())))
 			else:
-				datas[method_name][fieldname] = list(map(lambda x: x / denom, datas[method_name][fieldname].values()))
+				datas[method_name][fieldname] = np.array(list(map(lambda x: x / denom, datas[method_name][fieldname].values())))
+
+	for method_name, data in datas.items():
+		indices = np.argsort(data[xfield])
+		for fieldname, field_data in method_data.items():
+			datas[method_name][fieldname] = datas[method_name][fieldname][indices]
 
 	for method_name, data in datas.items():
 		for i in range(len(yfields)):
