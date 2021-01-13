@@ -115,10 +115,11 @@ class GreedyNN_MP_RAND():
 				error_ascending_indice = np.unravel_index(np.argsort(fitness_pred_error.flatten()), fitness_pred_error.shape)
 
 				y_raw = gen_imgs[error_ascending_indice][-(self.img_shape[0]):]
-				if best_img in y_raw:
-					y_raw = np.delete(y_raw, np.where((y_raw == best_img).all(axis = 1))[0][0], 0)
-				else:
+				best_index_in_y_raw = np.where((y_raw == best_img).all(axis = 1))
+				if len(best_index_in_y_raw[0]) == 0:
 					y_raw = y_raw[:-1]
+				else:
+					y_raw = np.delete(y_raw, best_index_in_y_raw[0], 0)
 				y_raw = np.append([best_img], y_raw, axis=0)
 				y = np.tile(y_raw, (batch_size, 1, 1))
 				g_loss = self.generator.train_on_batch(noise, y)
