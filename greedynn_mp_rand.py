@@ -85,7 +85,7 @@ class GreedyNN_MP_RAND():
 					noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
 				gen_imgs = self.generator.predict(noise)
 				randomly_gen_size = np.int(batch_size * min(g_loss, 1.0))
-				randomly_gen_imgs = np.random.rand(randomly_gen_size, gen_imgs.shape[1], gen_imgs.shape[2])
+				randomly_gen_imgs = np.random.rand(randomly_gen_size, gen_imgs.shape[1], gen_imgs.shape[2]) * 2 - 1
 				gen_imgs = np.vstack((gen_imgs, randomly_gen_imgs))
 				gen_imgs_fitness = np.apply_along_axis(self.evaluator, 2, gen_imgs)
 				n_eval += gen_imgs.shape[0] * gen_imgs.shape[1]
