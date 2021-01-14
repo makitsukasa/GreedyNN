@@ -40,24 +40,33 @@ def plot(filenames, xfield, yfields, yerrors, labels, xlabel, ylabel, log_scaled
 				raw_datas[method_name][index][fieldname] = list(map(float, data[fieldname]))
 
 	datas = {}
+	counter = {}
 	for method_name, method_data in raw_datas.items():
 		datas[method_name] = {}
+		counter[method_name] = {}
 		for index, indexed_data in method_data.items():
 			for fieldname, field_data in indexed_data.items():
 				if not fieldname in datas[method_name].keys():
 					datas[method_name][fieldname] = {}
+					counter[method_name][fieldname] = {}
 				for i in range(len(field_data)):
 					if i in datas[method_name][fieldname].keys():
 						datas[method_name][fieldname][i] += field_data[i]
+						counter[method_name][fieldname][i] += 1
 					else:
 						datas[method_name][fieldname][i] = field_data[i]
+						counter[method_name][fieldname][i] = 1
+
 	for method_name, method_data in datas.items():
-		denom = len(raw_datas[method_name])
 		for fieldname, field_data in method_data.items():
 			if all([i.is_integer() for i in datas[method_name][fieldname].values()]):
-				datas[method_name][fieldname] = np.array(list(map(lambda x: int(x) // denom, datas[method_name][fieldname].values())))
+				datas[method_name][fieldname] = np.array(list(map(
+					lambda i: int(datas[method_name][fieldname][i]) // counter[method_name][fieldname][i],
+					datas[method_name][fieldname].keys())))
 			else:
-				datas[method_name][fieldname] = np.array(list(map(lambda x: x / denom, datas[method_name][fieldname].values())))
+				datas[method_name][fieldname] = np.array(list(map(
+					lambda i: datas[method_name][fieldname][i] / counter[method_name][fieldname][i],
+					datas[method_name][fieldname].keys())))
 
 	for method_name, data in datas.items():
 		indices = np.argsort(data[xfield])
@@ -116,4 +125,5 @@ if __name__ == '__main__':
 		args.xlabel,
 		args.ylabel,
 		args.log_scaled,
-		args.max)
+		args.max,
+		args.hide_legend)
