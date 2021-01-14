@@ -13,7 +13,7 @@ plt.rcParams["mathtext.default"] = "regular"
 plt.rcParams["font.size"] = 14
 mpl.rc('figure.subplot', left=0.15, right=0.95, bottom=0.15, top=0.95)
 
-def plot(filenames, xfield, yfields, yerrors, labels, xlabel, ylabel, log_scaled = False, x_max = None):
+def plot(filenames, xfield, yfields, yerrors, labels, xlabel, ylabel, log_scaled = False, x_max = None, hide_legend = False):
 	if isinstance(filenames, str):
 		filenames = [filenames]
 
@@ -98,7 +98,8 @@ def plot(filenames, xfield, yfields, yerrors, labels, xlabel, ylabel, log_scaled
 		plt.yscale("log")
 	if x_max is not None:
 		plt.xlim(None, float(x_max))
-	plt.legend()
+	if not hide_legend:
+		plt.legend()
 	plt.xlabel(xlabel)
 	plt.ylabel(ylabel)
 	plt.show()
@@ -112,6 +113,7 @@ if __name__ == '__main__':
 	parser.add_argument("--labels", action = "store", nargs='*', default=None)
 	parser.add_argument("-l", "--log_scaled", action = "store_true")
 	parser.add_argument("-m", "--max", action = "store")
+	parser.add_argument("--hide_legend", action = "store_true")
 	parser.add_argument("--xlabel", default = "個体の評価回数") # "Number of times individuals are evaluated"
 	parser.add_argument("--ylabel", default = "") # "Objective function value"
 	args = parser.parse_args()
