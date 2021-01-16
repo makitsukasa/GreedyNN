@@ -10,7 +10,7 @@ import copy
 import numpy.random as rnd
 import pso_util as util
 
-def particleswarm(f,bounds,p,c1,c2,vmax,tol):
+def particleswarm(f, bounds, p=60, c1=2.8, c2=1.3, vmax=1.5, tol=1e-14):
 	'''
 	DESCRIPTION
 	see https://en.wikipedia.org/wiki/Particle_swarm_optimization
@@ -76,9 +76,10 @@ def particleswarm(f,bounds,p,c1,c2,vmax,tol):
 
 		local_best=util.local_best_get(particle_pos,pos_val,p)
 
-	return print('Optimum at: ',swarm_best,'\n','Function at optimum: ',f(swarm_best))
+	print('Optimum at: ',swarm_best,'\n','Function at optimum: ',f(swarm_best))
+	return f(swarm_best)
 
-if __name__ == "__main__":
+if False:
 	f=util.Rosenbrock
 	dimensions=10
 	dimension_bounds=[-2,2]
@@ -95,3 +96,27 @@ if __name__ == "__main__":
 	tol=0.00000000000001
 
 	particleswarm(f,bounds,p,c1,c2,vmax,tol)
+
+if __name__ == "__main__" :
+	def sphere(x):
+		return -np.sum(x ** 2)
+
+	def sphere_offset(x):
+		return -np.sum((x - 0.5) ** 2)
+
+	def ackley(x):
+		x *= 32.768
+		return -20 + 20 * np.exp(- 0.2 * np.sqrt(1.0 / len(x) * np.sum(x ** 2)))\
+			- np.e + np.exp(1.0 / len(x) * np.sum(np.cos(2 * np.pi * x)))
+
+	def rastrigin(x):
+		x *= 5.12
+		return -10 * len(x) - np.sum(x ** 2) + 10 * np.sum(np.cos(2 * np.pi * x))
+
+	evaluator = rastrigin
+	ndim = 5
+
+	fitness = particleswarm(
+		f = lambda x: -evaluator(np.array(x, dtype=np.float)),
+		bounds = [[-1, 1] for _ in range(ndim)])
+	print(fitness)
