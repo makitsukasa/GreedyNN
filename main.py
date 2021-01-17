@@ -36,8 +36,8 @@ def rastrigin_offset(x_):
 	return -10 * len(x) - np.sum(x ** 2) + 10 * np.sum(np.cos(2 * np.pi * x))
 
 n_dim = 20
-n_loop = 10
-evaluator = sphere          ; n_gen_img = 100; n_epoch = 100
+n_loop = 1
+# evaluator = sphere          ; n_gen_img = 100; n_epoch = 100
 # evaluator = sphere          ; n_gen_img = 100; n_epoch = 1000
 # evaluator = sphere_offset   ; n_gen_img = 100; n_epoch = 100
 # evaluator = sphere_offset   ; n_gen_img = 100; n_epoch = 1000
@@ -47,7 +47,7 @@ evaluator = sphere          ; n_gen_img = 100; n_epoch = 100
 # evaluator = ackley_offset   ; n_gen_img = 100; n_epoch = 10000
 # evaluator = rastrigin       ; n_gen_img = 100; n_epoch = 1000
 # evaluator = rastrigin       ; n_gen_img = 100; n_epoch = 10000
-# evaluator = rastrigin_offset; n_gen_img = 100; n_epoch = 1000
+evaluator = rastrigin_offset; n_gen_img = 100; n_epoch = 1000
 # evaluator = rastrigin_offset; n_gen_img = 100; n_epoch = 10000
 
 batch_size = 10
@@ -71,23 +71,23 @@ bench_dir = f"benchmark/{env_str}/"
 os.makedirs(bench_dir, exist_ok=True)
 
 for loop in range(n_loop):
-	greedynn_ = greedynn.GreedyNN(
-		img_shape = (1, n_dim),
-		n_gen_img = n_gen_img,
-		evaluator = evaluator,
-		noise_dim = 1,
-		filepath = f"{bench_dir}greedynn_{loop}.csv")
-	f = greedynn_.train(n_epoch=n_epoch, batch_size=batch_size)
-	f_greedynn[loop] = f
+	# greedynn_ = greedynn.GreedyNN(
+	# 	img_shape = (1, n_dim),
+	# 	n_gen_img = n_gen_img,
+	# 	evaluator = evaluator,
+	# 	noise_dim = 1,
+	# 	filepath = f"{bench_dir}greedynn_{loop}.csv")
+	# f = greedynn_.train(n_epoch=n_epoch, batch_size=batch_size)
+	# f_greedynn[loop] = f
 
-	greedynn_rand_ = greedynn_rand.GreedyNN_RAND(
-		img_shape = (1, n_dim),
-		n_gen_img = n_gen_img,
-		evaluator = evaluator,
-		noise_dim = 1,
-		filepath = f"{bench_dir}greedynn_rand_{loop}.csv")
-	f = greedynn_rand_.train(n_epoch=n_epoch, batch_size=batch_size)
-	f_greedynn_rand[loop] = f
+	# greedynn_rand_ = greedynn_rand.GreedyNN_RAND(
+	# 	img_shape = (1, n_dim),
+	# 	n_gen_img = n_gen_img,
+	# 	evaluator = evaluator,
+	# 	noise_dim = 1,
+	# 	filepath = f"{bench_dir}greedynn_rand_{loop}.csv")
+	# f = greedynn_rand_.train(n_epoch=n_epoch, batch_size=batch_size)
+	# f_greedynn_rand[loop] = f
 
 	greedynn_mp_ = greedynn_mp.GreedyNN_MP(
 		img_shape = (10, n_dim),
@@ -113,21 +113,21 @@ for loop in range(n_loop):
 	# f = cmaes_.train(max_eval_count = n_epoch * batch_size // 2)
 	# f_cmaes[loop] = f
 
-	pbilc_ = pbilc.PBILC(
-		n_dim = n_dim,
-		n_child = n_gen_img,
-		evaluator = evaluator,
-		filepath = f"{bench_dir}pbilc_{loop}.csv")
-	f = pbilc_.train(n_generation = n_epoch)
-	f_pbilc[loop] = f
+	# pbilc_ = pbilc.PBILC(
+	# 	n_dim = n_dim,
+	# 	n_child = n_gen_img,
+	# 	evaluator = evaluator,
+	# 	filepath = f"{bench_dir}pbilc_{loop}.csv")
+	# f = pbilc_.train(n_generation = n_epoch)
+	# f_pbilc[loop] = f
 
 print(env_str)
 # print("swap   :", np.mean(f_swapgan))
 # print("fswap  :", np.mean(f_fswapgan))
-print("greedy :", np.mean(f_greedynn))
-print("grdrd  :", np.mean(f_greedynn_rand))
+# print("greedy :", np.mean(f_greedynn))
+# print("grdrd  :", np.mean(f_greedynn_rand))
 print("grdmp  :", np.mean(f_greedynn_mp))
 print("grdmprd:", np.mean(f_greedynn_mp_rand))
 # print("jgg    :", np.mean(f_jgg))
 # print("cmaes  :", np.mean(f_cmaes))
-print("eda    :", np.mean(f_pbilc))
+# print("eda    :", np.mean(f_pbilc))

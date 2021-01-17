@@ -92,19 +92,13 @@ class GreedyNN_MP():
 					best_img = gen_imgs[ascending_indice][-1]
 
 				# Train the generator
-				x_len = self.img_shape[1] * 2 + 1
-				x = np.ones((batch_size * self.img_shape[0], x_len), float)
-				for i in range(self.img_shape[1]):
-					x[:, i*2] = gen_imgs[:, :, i].flatten()
-					x[:, i*2+1] = gen_imgs[:, :, i].flatten() ** 2
-
 				# 近似
 				fitness_pred_error = np.copy(gen_imgs_fitness)
-				for i in range(x_len):
-					p = np.polyfit(x[:, i], gen_imgs_fitness.flatten(), 2)
+				for i in range(gen_imgs.shape[2]):
+					p = np.polyfit(gen_imgs[:, :, i].flatten(), gen_imgs_fitness.flatten(), 2)
 					p[0] = max(p[0], 0)
 					p[1] = max(p[1], 0)
-					y_pred = (p[0] * x[:, i] ** 2 + p[1] * x[:, i] + p[2]) / x.shape[1]
+					y_pred = (p[0] * gen_imgs[:, :, i] ** 2 + p[1] * gen_imgs[:, :, i] + p[2]) / gen_imgs.shape[2]
 					fitness_pred_error -= np.reshape(y_pred, fitness_pred_error.shape)
 				error_ascending_indice = np.unravel_index(np.argsort(fitness_pred_error.flatten()), fitness_pred_error.shape)
 
