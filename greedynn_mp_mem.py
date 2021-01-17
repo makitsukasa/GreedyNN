@@ -13,6 +13,7 @@ from keras.initializers import RandomUniform
 import warnings
 
 warnings.simplefilter('ignore', np.RankWarning)
+np.set_printoptions(formatter={'float': '{:.3}'.format})
 
 class GreedyNN_MP_MEM():
 	def __init__(
@@ -146,7 +147,7 @@ class GreedyNN_MP_MEM():
 
 				n_eval = (epoch * n_batches + iteration + 1) * batch_size * self.img_shape[0]
 				print(f"{n_eval}/{batch_size * n_batches * n_epoch * self.img_shape[0]} "
-					f"fitness:{np.mean(gen_fitness)}, {best_fitness}")
+					f"fitness:{np.mean(gen_fitness):.3e}, {best_fitness:.3e}, {teacher_fitness}")
 
 				mean = np.mean(gen_imgs, axis=0)
 				stddev = np.std(gen_imgs, axis=0)
