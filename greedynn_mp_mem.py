@@ -113,16 +113,19 @@ class GreedyNN_MP_MEM():
 					y_pred = (p[0] * gen_imgs[:, :, i] ** 2 +
 						p[1] * gen_imgs[:, :, i] + p[2]) / gen_imgs.shape[2]
 					fitness_pred_error -= np.reshape(y_pred, fitness_pred_error.shape)
-					t_pred = (p[0] * teacher_img[:, i] ** 2 + p[1] * teacher_img[:, i] + p[2])
+					t_pred = (p[0] * teacher_img[:, i] ** 2 +
+						p[1] * teacher_img[:, i] + p[2]) / gen_imgs.shape[2]
 					teacher_fitness_pred_error -= np.reshape(
 						t_pred, teacher_fitness_pred_error.shape)
+
 				vstacked_imgs = np.vstack((gen_imgs.reshape(-1, gen_imgs.shape[2]), teacher_img))
 				vstacked_fitnesses = np.hstack((gen_fitness.flatten(), teacher_fitness))
 
 				error_ascending_indice = np.argsort(np.hstack(
 					(fitness_pred_error.flatten(), teacher_fitness_pred_error)))
-				error_ascending_indice = error_ascending_indice[
-					np.where((vstacked_imgs != best_img).all(axis = 1))]
+				error_ascending_indice = error_ascending_indice[np.where(
+					np.isfinite(vstacked_imgs).all(axis = 1) &
+					(vstacked_imgs != best_img).all(axis = 1))]
 
 				teacher_img = vstacked_imgs[error_ascending_indice][-teacher_img.shape[0]:]
 				teacher_fitness = vstacked_fitnesses[error_ascending_indice][-teacher_img.shape[0]:]
