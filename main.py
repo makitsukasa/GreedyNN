@@ -61,6 +61,7 @@ f_greedynn = [None for _ in range(n_loop)]
 f_greedynn_rand = [None for _ in range(n_loop)]
 f_greedynn_mp = [None for _ in range(n_loop)]
 f_greedynn_mp_rand = [None for _ in range(n_loop)]
+f_greedynn_mp_mem = [None for _ in range(n_loop)]
 f_randgen = [None for _ in range(n_loop)]
 f_jgg = [None for _ in range(n_loop)]
 f_cmaes = [None for _ in range(n_loop)]
@@ -127,7 +128,8 @@ print(env_str)
 # print("greedy :", np.mean(f_greedynn))
 # print("grdrd  :", np.mean(f_greedynn_rand))
 print("grdmp  :", np.mean(f_greedynn_mp))
-print("grdmprd:", np.mean(f_greedynn_mp_rand))
+# print("grdmprd:", np.mean(f_greedynn_mp_rand))
+# print("grdmpmm:", np.mean(f_greedynn_mp_mem))
 # print("jgg    :", np.mean(f_jgg))
 # print("cmaes  :", np.mean(f_cmaes))
 # print("eda    :", np.mean(f_pbilc))

@@ -109,8 +109,8 @@ class GreedyNN_MP_MEM():
 				teacher_fitness_pred_error = np.copy(teacher_fitness)
 				for i in range(gen_imgs.shape[2]):
 					p = np.polyfit(gen_imgs[:, :, i].flatten(), gen_fitness.flatten(), 2)
-					p[0] = max(p[0], 0)
-					p[1] = max(p[1], 0)
+					if p[0] < 0:
+						p[0] = p[1] = 0
 					y_pred = (p[0] * gen_imgs[:, :, i] ** 2 +
 						p[1] * gen_imgs[:, :, i] + p[2]) / gen_imgs.shape[2]
 					fitness_pred_error -= np.reshape(y_pred, fitness_pred_error.shape)
