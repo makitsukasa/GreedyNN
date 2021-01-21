@@ -16,7 +16,7 @@ warnings.simplefilter('ignore', np.RankWarning)
 
 # GreedyNN_MultiPoint
 class GreedyNN_MP():
-	def __init__(self, img_shape, n_gen_img, evaluator, noise_dim = 100, fixed_noise = False, filepath = None):
+	def __init__(self, img_shape, n_gen_img, evaluator, lr = 0.01, noise_dim = 100, fixed_noise = False, filepath = None):
 		self.img_shape = img_shape
 		self.n_gen_img = n_gen_img
 		self.noise_dim = noise_dim
@@ -24,7 +24,7 @@ class GreedyNN_MP():
 		self.fixed_noise = fixed_noise
 		self.filepath = filepath
 
-		optimizer = Adam(0.001, 0.9)
+		optimizer = Adam(lr)
 
 		# Generator model
 		self.generator = self.build_generator()
