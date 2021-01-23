@@ -11,6 +11,7 @@ import greedynn_mp_rand_mem
 import randgen
 import jgg
 import cmaes
+import pbilc
 import pso
 
 def sphere(x):
