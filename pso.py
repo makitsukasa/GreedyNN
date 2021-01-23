@@ -5,18 +5,19 @@ Created on Sun Mar  3 15:59:36 2019
 https://github.com/TomRSavage/ParticleSwarm
 """
 
-import numpy as np
+import csv
 import copy
+import numpy as np
 import numpy.random as rnd
 import pso_util as util
 
-def particleswarm(f, bounds, p=60, c1=2.8, c2=1.3, vmax=1.5, max_n_eval=10000):
+def particleswarm(evaluator, bounds, p=60, c1=2.8, c2=1.3, vmax=1.5, max_n_eval=10000, filepath=None):
 	'''
 	DESCRIPTION
 	see https://en.wikipedia.org/wiki/Particle_swarm_optimization
 
 	INPUTS
-	f           :function to be optimized
+	evaluator   :function to be optimized
 	bounds      :bounds of each dimension in form [[x1,x2],[x3,x4]...]
 	p           :number of particles
 	c1          :adjustable parameter
@@ -30,24 +31,40 @@ def particleswarm(f, bounds, p=60, c1=2.8, c2=1.3, vmax=1.5, max_n_eval=10000):
 	'''
 	print('Currently placing particles and giving them random \
 	velocities...')
-	d,particle_pos, particle_best, swarm_best, particle_velocity, \
-		local_best, pos_val \
-	= util.initiation(f,bounds,p) #initializing various arrays
+	d,particle_pos, particle_best, swarm_best, particle_velocity, local_best, pos_val =\
+		util.initiation(evaluator,bounds,p) #initializing various arrays
 	old_swarm_best=[0]*d
 	c3=c1+c2
 	K=2/(abs(2-c3-np.sqrt((c3**2)-(4*c3)))) #creating velocity weighting factor
 	it_count = 0
 	n_eval = 0
+	particle_fitness = [None] * p
+
+	if filepath:
+		f = open(filepath, mode = "w")
+		csv_writer = csv.writer(f)
+		csv_writer.writerow([
+			"n_eval",
+			"max_n_eval",
+			"dist_mean",
+			"dist_stddev",
+			"fitness_mean",
+			"fitness_best",
+			"fitness_best_so_far",
+		])
+
 	while n_eval < max_n_eval: #exit condition
 
 		it_count+=1
+		n_eval += p
+
 		if it_count>1000: #every 1000 iterations...
 						#create 'conflict' within the swarm and
 						#give all particles random velocities
 			print('Particles are too friendly! Creating conflict...')
 			for j in range(p): #iterating ovre the number of particles
-				particle_velocity[j]=[(rnd.uniform(-abs(bounds[i][1]-bounds[i][0])\
-					,abs(bounds[i][1]-bounds[i][0]))) for i in range(d)]
+				particle_velocity[j]=[(rnd.uniform(-abs(bounds[i][1]-bounds[i][0]),\
+					abs(bounds[i][1]-bounds[i][0]))) for i in range(d)]
 					#adding random velocity values for each dimension
 			it_count=0 #reset iteration count
 
@@ -56,7 +73,7 @@ def particleswarm(f, bounds, p=60, c1=2.8, c2=1.3, vmax=1.5, max_n_eval=10000):
 			particle_velocity[i,:]+=(c1*rp*(particle_best[i,:]-particle_pos[i,:]))
 			particle_velocity[i,:]+=(c2*rg*(local_best[i,:]-particle_pos[i,:]))
 			particle_velocity[i,:]=particle_velocity[i,:]*K
-			if particle_velocity[i].any() > vmax : #is any velocity is greater than vmax
+			if particle_velocity[i].any() > vmax: #is any velocity is greater than vmax
 					particle_velocity[i,:]=vmax #set velocity to vmax
 			#all of the above is regarding updating the particle's velocity
 			#with regards to various parameters (local_best, p_best etc..)
@@ -64,23 +81,34 @@ def particleswarm(f, bounds, p=60, c1=2.8, c2=1.3, vmax=1.5, max_n_eval=10000):
 
 			util.withinbounds(bounds,particle_pos[i]) #if particle is out of bounds
 
-			particle_fitness=f(particle_pos[i])
+			particle_fitness[i]=evaluator(particle_pos[i])
 
-			if particle_fitness < pos_val[i]:
+			if particle_fitness[i] < pos_val[i]:
 				particle_best[i,:]=particle_pos[i,:] #checking if new best
-				pos_val[i]=particle_fitness
-				f_swarm_best=f(swarm_best)
-				if particle_fitness < f_swarm_best:
+				pos_val[i]=particle_fitness[i]
+				f_swarm_best=evaluator(swarm_best)
+				if particle_fitness[i] < f_swarm_best:
 					old_swarm_best=swarm_best[:]
 					swarm_best=copy.deepcopy(particle_best[i,:])
-					print('current function value: ',f(swarm_best))
-
-		n_eval += p
+					print(f"{n_eval}/{max_n_eval}, {f_swarm_best}")
 
 		local_best=util.local_best_get(particle_pos,pos_val,p)
 
-	print('Optimum at: ',swarm_best,'\n','Function at optimum: ',f(swarm_best))
-	return f(swarm_best)
+		if filepath:
+			csv_writer.writerow([
+				n_eval,
+				max_n_eval,
+				np.mean(particle_pos),
+				np.mean(np.std(particle_pos, axis=0)),
+				-np.mean(particle_fitness),
+				-sorted(particle_fitness)[0],
+				-f_swarm_best,
+			])
+
+	if filepath:
+		f.close()
+	print('Optimum at: ',swarm_best,'\n','Function at optimum: ',evaluator(swarm_best))
+	return evaluator(swarm_best)
 
 if False:
 	f=util.Rosenbrock
@@ -116,11 +144,11 @@ if __name__ == "__main__" :
 		x *= 5.12
 		return -10 * len(x) - np.sum(x ** 2) + 10 * np.sum(np.cos(2 * np.pi * x))
 
-	evaluator = rastrigin
-	ndim = 5
+	evaluator = sphere_offset
+	ndim = 20
 
 	fitness = particleswarm(
-		f = lambda x: -evaluator(np.array(x, dtype=np.float)),
+		evaluator = lambda x: -evaluator(np.array(x, dtype=np.float)),
 		bounds = [[-1, 1] for _ in range(ndim)],
-		max_n_eval = 10e4)
-	print(fitness)
+		max_n_eval = int(1e5),
+		filepath="hoge.csv")

@@ -37,10 +37,10 @@ def rastrigin_offset(x_):
 
 n_dim = 20
 n_loop = 10
-evaluator = sphere          ; n_gen_img = 100; n_epoch = 100
+# evaluator = sphere          ; n_gen_img = 100; n_epoch = 100
 # evaluator = sphere          ; n_gen_img = 100; n_epoch = 1000
 # evaluator = sphere_offset   ; n_gen_img = 100; n_epoch = 100
-# evaluator = sphere_offset   ; n_gen_img = 100; n_epoch = 1000
+evaluator = sphere_offset   ; n_gen_img = 100; n_epoch = 1000
 # evaluator = ackley          ; n_gen_img = 100; n_epoch = 1000
 # evaluator = ackley          ; n_gen_img = 100; n_epoch = 10000
 # evaluator = ackley_offset   ; n_gen_img = 100; n_epoch = 1000
@@ -50,7 +50,7 @@ evaluator = sphere          ; n_gen_img = 100; n_epoch = 100
 # evaluator = rastrigin_offset; n_gen_img = 100; n_epoch = 1000
 # evaluator = rastrigin_offset; n_gen_img = 100; n_epoch = 10000
 
-batch_size = 1
+batch_size = 10
 # y = np.array([0.0 for _ in range(n_dim)])
 # y = np.array([0.5 for _ in range(n_dim)])
 
@@ -123,9 +123,10 @@ for loop in range(n_loop):
 	# f_pbilc[loop] = f
 
 	f = pso.particleswarm(
-		f = lambda x: -evaluator(np.array(x, dtype=np.float)),
+		evaluator = lambda x: -evaluator(np.array(x, dtype=np.float)),
 		bounds = [[-1, 1] for _ in range(n_dim)],
-		max_n_eval = n_epoch * n_gen_img)
+		max_n_eval = n_epoch * n_gen_img,
+		filepath = f"{bench_dir}pso_{loop}.csv")
 	f_pso[loop] = f
 
 print(env_str)
