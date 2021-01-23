@@ -11,7 +11,7 @@ import greedynn_mp_rand_mem
 import randgen
 import jgg
 import cmaes
-import pbilc
+import pso
 
 def sphere(x):
 	return -np.sum(x ** 2)
@@ -42,7 +42,7 @@ n_loop = 10
 # evaluator = sphere          ; n_gen_img = 100; n_epoch = 100
 # evaluator = sphere          ; n_gen_img = 100; n_epoch = 1000
 # evaluator = sphere_offset   ; n_gen_img = 100; n_epoch = 100
-# evaluator = sphere_offset   ; n_gen_img = 100; n_epoch = 1000
+evaluator = sphere_offset   ; n_gen_img = 100; n_epoch = 1000
 # evaluator = ackley          ; n_gen_img = 100; n_epoch = 1000
 # evaluator = ackley          ; n_gen_img = 100; n_epoch = 10000
 # evaluator = ackley_offset   ; n_gen_img = 100; n_epoch = 1000
@@ -50,7 +50,7 @@ n_loop = 10
 # evaluator = rastrigin       ; n_gen_img = 100; n_epoch = 1000
 # evaluator = rastrigin       ; n_gen_img = 100; n_epoch = 10000
 # evaluator = rastrigin_offset; n_gen_img = 100; n_epoch = 1000
-evaluator = rastrigin_offset; n_gen_img = 100; n_epoch = 10000
+# evaluator = rastrigin_offset; n_gen_img = 100; n_epoch = 10000
 
 batch_size = 10
 # y = np.array([0.0 for _ in range(n_dim)])
@@ -128,5 +128,11 @@ for loop in range(n_loop):
 	# 	evaluator = evaluator,
 	# 	filepath = f"{bench_dir}pbilc_{loop}.csv")
 	# f = pbilc_.train(n_generation = n_epoch)
+
+	f = pso.particleswarm(
+		evaluator = lambda x: -evaluator(np.array(x, dtype=np.float)),
+		bounds = [[-1, 1] for _ in range(n_dim)],
+		max_n_eval = n_epoch * n_gen_img,
+		filepath = f"{bench_dir}pso_{loop}.csv")
 
 print(env_str)
