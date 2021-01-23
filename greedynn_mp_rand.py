@@ -122,7 +122,7 @@ class GreedyNN_MP_RAND():
 				# progress
 				# print ("epoch:%d, iter:%d,  [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epoch, iteration, d_loss[0], 100*d_loss[1], g_loss))
 				print ("epoch:%d/%d, iter:%d/%d, [G loss: %f] [mean: %f best: %f]" %
-					(n_eval, max_n_eval, iteration+1, n_batches, g_loss, np.mean(gen_imgs_fitness), best_fitness))
+					(n_epoch * n_eval / max_n_eval, n_epoch, iteration+1, n_batches, g_loss, np.mean(gen_imgs_fitness), best_fitness))
 
 				print(f"{n_eval}/{max_n_eval}, {iteration+1}/{n_batches} fitness:{np.mean(gen_imgs_fitness)}, {best_fitness}")
 

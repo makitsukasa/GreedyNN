@@ -67,7 +67,6 @@ class GreedyNN_MP_MEM():
 		best_img = np.random.uniform(-1.0, 1.0, (self.img_shape[1]))
 		teacher_fitness = np.full((self.img_shape[0] - 1), np.NINF)
 		teacher_img = np.full((self.img_shape[0] - 1, self.img_shape[1]), np.NAN)
-
 		noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
 
 		if self.filepath:
