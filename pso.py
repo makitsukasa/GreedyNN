@@ -10,7 +10,7 @@ import copy
 import numpy.random as rnd
 import pso_util as util
 
-def particleswarm(f, bounds, p=60, c1=2.8, c2=1.3, vmax=1.5, tol=1e-14):
+def particleswarm(f, bounds, p=60, c1=2.8, c2=1.3, vmax=1.5, max_n_eval=10000):
 	'''
 	DESCRIPTION
 	see https://en.wikipedia.org/wiki/Particle_swarm_optimization
@@ -22,7 +22,7 @@ def particleswarm(f, bounds, p=60, c1=2.8, c2=1.3, vmax=1.5, tol=1e-14):
 	c1          :adjustable parameter
 	c2          :adjustable parameter
 	vmax        :maximum particle velocity
-	tol         :tolerance for exit condition
+	max_n_eval  :
 
 	OUTPUTS
 	swarm_best  : coordinates of optimal solution, with regards to exit
@@ -36,8 +36,9 @@ def particleswarm(f, bounds, p=60, c1=2.8, c2=1.3, vmax=1.5, tol=1e-14):
 	old_swarm_best=[0]*d
 	c3=c1+c2
 	K=2/(abs(2-c3-np.sqrt((c3**2)-(4*c3)))) #creating velocity weighting factor
-	it_count=0
-	while abs(f(old_swarm_best)-f(swarm_best))>tol: #exit condition
+	it_count = 0
+	n_eval = 0
+	while n_eval < max_n_eval: #exit condition
 
 		it_count+=1
 		if it_count>1000: #every 1000 iterations...
@@ -74,6 +75,8 @@ def particleswarm(f, bounds, p=60, c1=2.8, c2=1.3, vmax=1.5, tol=1e-14):
 					swarm_best=copy.deepcopy(particle_best[i,:])
 					print('current function value: ',f(swarm_best))
 
+		n_eval += p
+
 		local_best=util.local_best_get(particle_pos,pos_val,p)
 
 	print('Optimum at: ',swarm_best,'\n','Function at optimum: ',f(swarm_best))
@@ -93,9 +96,9 @@ if False:
 	vmax=(dimension_bounds[1]-dimension_bounds[0])*0.75
 	c1=2.8 #shouldn't really change
 	c2=1.3 #shouldn't really change
-	tol=0.00000000000001
+	max_n_eval=10000
 
-	particleswarm(f,bounds,p,c1,c2,vmax,tol)
+	particleswarm(f,bounds,p,c1,c2,vmax,max_n_eval)
 
 if __name__ == "__main__" :
 	def sphere(x):
@@ -118,5 +121,6 @@ if __name__ == "__main__" :
 
 	fitness = particleswarm(
 		f = lambda x: -evaluator(np.array(x, dtype=np.float)),
-		bounds = [[-1, 1] for _ in range(ndim)])
+		bounds = [[-1, 1] for _ in range(ndim)],
+		max_n_eval = 10e4)
 	print(fitness)
