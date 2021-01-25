@@ -34,8 +34,9 @@ class GreedyNN_MP_RW():
 		self.evaluator = evaluator
 		self.fixed_noise = fixed_noise
 		self.filepath = filepath
+		self.lr = lr
 
-		optimizer = Adam(lr)
+		optimizer = Adam(self.lr)
 
 		# Generator model
 		self.generator = self.build_generator()
@@ -62,28 +63,10 @@ class GreedyNN_MP_RW():
 
 		return model
 
-	def reset_weights(self):
-		output = False
-		for layer in self.generator.layers:
-			if output: print("_______________")
-			if output: print(layer)
-			if isinstance(layer, tf.keras.Model): #if you're using a model as a layer
-				reset_weights(layer) #apply function recursively
-				continue
-			if hasattr(layer, 'cell'):
-				init_container = layer.cell
-			else:
-				init_container = layer
-
-			for key, initializer in init_container.__dict__.items():
-				if ("kernel_initializer" or "recurrent_initializer") not in key:
-					continue # skip if this item is not an initializer
-				if output: print("key:", key)
-				if output: print("initializer:", initializer)
-				#replace weights with initialized values
-				weights = layer.get_weights()
-				weights = [initializer(w.shape, w.dtype) for w in weights]
-				layer.set_weights(weights)
+	def reset_generator(self):
+		optimizer = Adam(self.lr)
+		self.generator = self.build_generator()
+		self.generator.compile(loss='mean_absolute_error', optimizer=optimizer)
 
 	def train(self, n_epoch, batch_size=64):
 		n_batches = self.n_gen_img // batch_size // self.img_shape[0]
@@ -110,8 +93,7 @@ class GreedyNN_MP_RW():
 		for epoch in range(n_epoch):
 			for iteration in range(n_batches):
 				if g_loss < 0.1:
-					self.reset_weights()
-					print("weights are reset")
+					self.reset_generator()
 
 				# ---------------------
 				#  Generator learning
