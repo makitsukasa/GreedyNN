@@ -35,6 +35,7 @@ class GreedyNN_MP_RW():
 		self.fixed_noise = fixed_noise
 		self.filepath = filepath
 		self.lr = lr
+		self.g_loss_criterion = g_loss_criterion
 
 		optimizer = Adam(self.lr)
 
@@ -92,7 +93,7 @@ class GreedyNN_MP_RW():
 
 		for epoch in range(n_epoch):
 			for iteration in range(n_batches):
-				if g_loss < 0.1:
+				if g_loss < self.g_loss_criterion:
 					self.reset_generator()
 
 				# ---------------------
