@@ -9,6 +9,7 @@ import greedynn_mp_rand
 import greedynn_mp_mem
 import greedynn_mp_rand_mem
 import greedynn_mp_rw
+import greedynn_mp_rw_mem
 import randgen
 import jgg
 import cmaes
@@ -40,15 +41,15 @@ def rastrigin_offset(x_):
 	return -10 * len(x) - np.sum(x ** 2) + 10 * np.sum(np.cos(2 * np.pi * x))
 
 n_dim = 20
-n_loop = 1
+n_loop = 10
 # evaluator = sphere          ; n_gen_img = 100; n_epoch = 100
 # evaluator = sphere          ; n_gen_img = 100; n_epoch = 1000
 # evaluator = sphere_offset   ; n_gen_img = 100; n_epoch = 100
-# evaluator = sphere_offset   ; n_gen_img = 100; n_epoch = 1000
+evaluator = sphere_offset   ; n_gen_img = 100; n_epoch = 1000
 # evaluator = ackley          ; n_gen_img = 100; n_epoch = 1000
 # evaluator = ackley          ; n_gen_img = 100; n_epoch = 10000
 # evaluator = ackley_offset   ; n_gen_img = 100; n_epoch = 1000
-evaluator = ackley_offset   ; n_gen_img = 100; n_epoch = 10000
+# evaluator = ackley_offset   ; n_gen_img = 100; n_epoch = 10000
 # evaluator = rastrigin       ; n_gen_img = 100; n_epoch = 1000
 # evaluator = rastrigin       ; n_gen_img = 100; n_epoch = 10000
 # evaluator = rastrigin_offset; n_gen_img = 100; n_epoch = 1000
@@ -99,15 +100,15 @@ for loop in range(n_loop):
 	# 	filepath = f"{bench_dir}greedynn_mp_rand_lr{lr}_{loop}.csv")
 	# f = greedynn_mp_rand_.train(n_epoch=n_epoch, batch_size=batch_size)
 
-	# lr = 0.015
-	# greedynn_mp_mem_ = greedynn_mp_mem.GreedyNN_MP_MEM(
-	# 	img_shape = (10, n_dim),
-	# 	n_gen_img = n_gen_img,
-	# 	evaluator = evaluator,
-	# 	lr = lr,
-	# 	noise_dim = 1,
-	# 	filepath = f"{bench_dir}greedynn_mp_mem_lr{lr}_{loop}.csv")
-	# f = greedynn_mp_mem_.train(n_epoch=n_epoch, batch_size=batch_size)
+	lr = 0.015
+	greedynn_mp_mem_ = greedynn_mp_mem.GreedyNN_MP_MEM(
+		img_shape = (10, n_dim),
+		n_gen_img = n_gen_img,
+		evaluator = evaluator,
+		lr = lr,
+		noise_dim = 1,
+		filepath = f"{bench_dir}greedynn_mp_mem_lr{lr}_{loop}.csv")
+	f = greedynn_mp_mem_.train(n_epoch=n_epoch, batch_size=batch_size)
 
 	# lr = 0.015
 	# greedynn_mp_rand_mem_ = greedynn_mp_rand_mem.GreedyNN_MP_RAND_MEM(
@@ -119,17 +120,29 @@ for loop in range(n_loop):
 	# 	filepath = f"{bench_dir}greedynn_mp_rand_mem_lr{lr}_{loop}.csv")
 	# f = greedynn_mp_rand_mem_.train(n_epoch=n_epoch, batch_size=batch_size)
 
-	lr = 0.015
-	g_loss_criterion = 0.001
-	greedynn_mp_rw_ = greedynn_mp_rw.GreedyNN_MP_RW(
-		img_shape = (10, n_dim),
-		n_gen_img = n_gen_img,
-		evaluator = evaluator,
-		lr = lr,
-		g_loss_criterion = g_loss_criterion,
-		noise_dim = 1,
-		filepath = f"{bench_dir}greedynn_mp_rw_lr{lr}_c{g_loss_criterion}_{loop}.csv")
-	f = greedynn_mp_rw_.train(n_epoch=n_epoch, batch_size=batch_size)
+	# lr = 0.015
+	# g_loss_criterion = 0.03
+	# greedynn_mp_rw_ = greedynn_mp_rw.GreedyNN_MP_RW(
+	# 	img_shape = (10, n_dim),
+	# 	n_gen_img = n_gen_img,
+	# 	evaluator = evaluator,
+	# 	lr = lr,
+	# 	g_loss_criterion = g_loss_criterion,
+	# 	noise_dim = 1,
+	# 	filepath = f"{bench_dir}greedynn_mp_rw_lr{lr}_c{g_loss_criterion}_{loop}.csv")
+	# f = greedynn_mp_rw_.train(n_epoch=n_epoch, batch_size=batch_size)
+
+	# lr = 0.015
+	# g_loss_criterion = 0.03
+	# greedynn_mp_rw_mem_ = greedynn_mp_rw_mem.GreedyNN_MP_RW_MEM(
+	# 	img_shape = (10, n_dim),
+	# 	n_gen_img = n_gen_img,
+	# 	evaluator = evaluator,
+	# 	lr = lr,
+	# 	g_loss_criterion = g_loss_criterion,
+	# 	noise_dim = 1,
+	# 	filepath = f"{bench_dir}greedynn_mp_rw_mem_lr{lr}_c{g_loss_criterion}_{loop}.csv")
+	# f = greedynn_mp_rw_mem_.train(n_epoch=n_epoch, batch_size=batch_size)
 
 	# cmaes_ = cmaes.CMAES(
 	# 	n_dim = n_dim,
