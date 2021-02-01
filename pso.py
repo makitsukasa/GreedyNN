@@ -55,18 +55,18 @@ def particleswarm(evaluator, bounds, p=60, c1=2.8, c2=1.3, vmax=1.5, max_n_eval=
 
 	while n_eval < max_n_eval: #exit condition
 
-		it_count+=1
+		# it_count += 1
 		n_eval += p
 
-		if it_count>1000: #every 1000 iterations...
-						#create 'conflict' within the swarm and
-						#give all particles random velocities
-			print('Particles are too friendly! Creating conflict...')
-			for j in range(p): #iterating ovre the number of particles
-				particle_velocity[j]=[(rnd.uniform(-abs(bounds[i][1]-bounds[i][0]),\
-					abs(bounds[i][1]-bounds[i][0]))) for i in range(d)]
-					#adding random velocity values for each dimension
-			it_count=0 #reset iteration count
+		# if it_count>1000: #every 1000 iterations...
+		# 				#create 'conflict' within the swarm and
+		# 				#give all particles random velocities
+		# 	print('Particles are too friendly! Creating conflict...')
+		# 	for j in range(p): #iterating ovre the number of particles
+		# 		particle_velocity[j]=[(rnd.uniform(-abs(bounds[i][1]-bounds[i][0]),\
+		# 			abs(bounds[i][1]-bounds[i][0]))) for i in range(d)]
+		# 			#adding random velocity values for each dimension
+		# 	it_count=0 #reset iteration count
 
 		for i in range(p): #iterates over each particle
 			rp,rg=rnd.uniform(0,1,2) #creates two random numbers between 0-
