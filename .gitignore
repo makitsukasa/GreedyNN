@@ -127,5 +127,5 @@ dmypy.json
 .vscode/
 *hoge*
 *.csv
-tempCodeRunnerFile.py
+tempCodeRunnerFile.* 
 *.zip
