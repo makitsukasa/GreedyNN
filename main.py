@@ -1,21 +1,8 @@
 import os
 import numpy as np
-import swapgan
-import cheatynn
 import greedynn
-import greedynn_rand
 import greedynn_mp
-import greedynn_mp_rand
-import greedynn_mp_mem
-import greedynn_mp_rand_mem
-import greedynn_mp_rw
-import greedynn_mp_rw_mem
-import randgen
-import jgg
-import cmaes
-import pbilc
 import pso
-import pso2
 
 def sphere(x):
 	return -np.sum(x ** 2)
@@ -43,17 +30,17 @@ def rastrigin_offset(x_):
 
 n_dim = 20
 n_loop = 1
-# evaluator = sphere          ; optimum = [0.0] * n_dim; n_eval = int(1e5)
+evaluator = sphere          ; optimum = [0.0] * n_dim; n_eval = int(1e2)
 # evaluator = sphere_offset   ; optimum = [0.5] * n_dim; n_eval = int(1e5)
 # evaluator = ackley          ; optimum = [0.0] * n_dim; n_eval = int(1e6)
 # evaluator = ackley_offset   ; optimum = [0.5] * n_dim; n_eval = int(1e6)
 # evaluator = rastrigin       ; optimum = [0.0] * n_dim; n_eval = int(1e6)
-evaluator = rastrigin_offset; optimum = [0.5] * n_dim; n_eval = int(1e6)
+# evaluator = rastrigin_offset; optimum = [0.5] * n_dim; n_eval = int(1e6)
 
 # y = np.array([0.0 for _ in range(n_dim)])
 # y = np.array([0.5 for _ in range(n_dim)])
 
-env_str = f"function={evaluator.__name__}({n_dim}dim),n_eval={n_eval},n_loop={n_loop}"
+env_str = f"fffffunction={evaluator.__name__}({n_dim}dim),n_eval={n_eval},n_loop={n_loop}"
 bench_dir = f"benchmark/{env_str}/"
 os.makedirs(bench_dir, exist_ok=True)
 
@@ -67,32 +54,32 @@ for loop in range(n_loop):
 		lr = lr,
 		noise_dim = 1,
 		filepath = f"{bench_dir}greedynn_p{p}_{loop}.csv")
-	f = greedynn_.train(max_n_eval = n_eval, n_batch = 10, batch_size = 10 * p)
+	f = greedynn_.train(max_n_eval = n_eval, n_batch = 10, batch_size = 10)
 
 	lr = 0.015
 	p = 3
-	greedynn_mp_mem_ = greedynn_mp_mem.GreedyNN_MP_MEM(
+	greedynn_mp_ = greedynn_mp.GreedyNN_MP(
 		img_shape = (p, n_dim),
 		evaluator = evaluator,
 		optimum = optimum,
 		lr = lr,
 		noise_dim = 1,
 		filepath = f"{bench_dir}greedynn_p{p}_{loop}.csv")
-	f = greedynn_mp_mem_.train(max_n_eval = n_eval, n_batch = 10, batch_size = 10 * p)
+	f = greedynn_mp_.train(max_n_eval = n_eval, n_batch = 10, batch_size = 15)
 
 	lr = 0.015
 	p = 8
-	greedynn_mp_mem_ = greedynn_mp_mem.GreedyNN_MP_MEM(
+	greedynn_mp_ = greedynn_mp.GreedyNN_MP(
 		img_shape = (p, n_dim),
 		evaluator = evaluator,
 		optimum = optimum,
 		lr = lr,
 		noise_dim = 1,
 		filepath = f"{bench_dir}greedynn_p{p}_{loop}.csv")
-	f = greedynn_mp_mem_.train(max_n_eval = n_eval, n_batch = 10, batch_size = 10 * p)
+	f = greedynn_mp_.train(max_n_eval = n_eval, n_batch = 10, batch_size = 16)
 
 	n_particles = n_dim * 100
-	f = pso2.pso(
+	f = pso.pso(
 		evaluator = lambda x: -evaluator(np.array(x, dtype=np.float)),
 		optimum = optimum,
 		n_dim = n_dim,

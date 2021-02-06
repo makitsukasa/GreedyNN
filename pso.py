@@ -1,44 +1,73 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Mar  3 15:59:36 2019
-@author: tomsa
-https://github.com/TomRSavage/ParticleSwarm
-"""
+# https://gist.github.com/tstreamDOTh/4af1d6b5a641deda16641181aa1e9ee8
 
+import random
 import csv
-import copy
 import numpy as np
-import numpy.random as rnd
-import pso_util as util
 
-def particleswarm(evaluator, bounds, p=60, c1=2.8, c2=1.3, vmax=1.5, max_n_eval=10000, filepath=None):
-	'''
-	DESCRIPTION
-	see https://en.wikipedia.org/wiki/Particle_swarm_optimization
+#--- MAIN
+class Particle:
+	def __init__(self,num_dimensions,x0):
+		self.num_dimensions=num_dimensions
+		self.position_i=[]          # particle position
+		self.velocity_i=[]          # particle velocity
+		self.pos_best_i=[]          # best position individual
+		self.err_best_i=-1          # best error individual
+		self.err_i=-1               # error individual
 
-	INPUTS
-	evaluator   :function to be optimized
-	bounds      :bounds of each dimension in form [[x1,x2],[x3,x4]...]
-	p           :number of particles
-	c1          :adjustable parameter
-	c2          :adjustable parameter
-	vmax        :maximum particle velocity
-	max_n_eval  :
+		for i in range(0,self.num_dimensions):
+			self.velocity_i.append(random.uniform(-1, 1))
+			self.position_i.append(x0[i])
+			if x0[i] == 1:
+				exit()
 
-	OUTPUTS
-	swarm_best  : coordinates of optimal solution, with regards to exit
-				  conditions
-	'''
-	print('Currently placing particles and giving them random \
-	velocities...')
-	d,particle_pos, particle_best, swarm_best, particle_velocity, local_best, pos_val =\
-		util.initiation(evaluator,bounds,p) #initializing various arrays
-	old_swarm_best=[0]*d
-	c3=c1+c2
-	K=2/(abs(2-c3-np.sqrt((c3**2)-(4*c3)))) #creating velocity weighting factor
-	it_count = 0
-	n_eval = 0
-	particle_fitness = [None] * p
+	# evaluate current fitness
+	def evaluate(self,evaluator):
+		self.err_i=evaluator(self.position_i)
+
+		# check to see if the current position is an individual best
+		if self.err_i < self.err_best_i or self.err_best_i==-1:
+			self.pos_best_i=self.position_i
+			self.err_best_i=self.err_i
+
+	# update new particle velocity
+	def update_velocity(self,pos_best_g):
+		c1 = 2.8        # cognative constant
+		c2 = 1.3        # social constant
+		w = 2/(abs(2-(c1+c2)-np.sqrt(((c1+c2)**2)-(4*(c1+c2)))))       # constant inertia weight (how much to weigh the previous velocity)
+
+		for i in range(0,self.num_dimensions):
+			r1=random.uniform(0, 1)
+			r2=random.uniform(0, 1)
+
+			vel_cognitive=c1*r1*(self.pos_best_i[i]-self.position_i[i])
+			vel_social=c2*r2*(pos_best_g[i]-self.position_i[i])
+			self.velocity_i[i]=w*self.velocity_i[i]+vel_cognitive+vel_social
+
+	# update the particle position based off new velocity updates
+	def update_position(self):
+		for i in range(0,self.num_dimensions):
+			self.position_i[i]=self.position_i[i]+self.velocity_i[i]
+
+			# # adjust maximum position if necessary
+			# if self.position_i[i]>bounds[i][1]:
+			# 	self.position_i[i]=bounds[i][1]
+
+			# # adjust minimum position if neseccary
+			# if self.position_i[i] < bounds[i][0]:
+			# 	self.position_i[i]=bounds[i][0]
+
+def pso(evaluator,
+		optimum,
+		n_dim = 10,
+		n_particles = 60,
+		max_n_eval = 1000,
+		filepath = None):
+
+	x0 = [random.uniform(-1, 1) for _ in range(n_dim)]
+	bounds = [(-1,1)] * n_dim
+
+	err_best_g=-1                   # best error for group
+	pos_best_g=[]                   # best position for group
 
 	if filepath:
 		f = open(filepath, mode = "w")
@@ -46,89 +75,62 @@ def particleswarm(evaluator, bounds, p=60, c1=2.8, c2=1.3, vmax=1.5, max_n_eval=
 		csv_writer.writerow([
 			"n_eval",
 			"max_n_eval",
-			"dist_mean",
+			"dist_r",
 			"dist_stddev",
 			"fitness_mean",
 			"fitness_best",
 			"fitness_best_so_far",
 		])
 
-	while n_eval < max_n_eval: #exit condition
+	# establish the swarm
+	swarm=[]
+	for i in range(0,n_particles):
+		swarm.append(Particle(n_dim, x0))
 
-		# it_count += 1
-		n_eval += p
+	# begin optimization loop
+	n_eval=0
+	while n_eval < max_n_eval:
+		#print n_eval,err_best_g
+		# cycle through particles in swarm and evaluate fitness
+		for j in range(0,n_particles):
+			swarm[j].evaluate(evaluator)
 
-		# if it_count>1000: #every 1000 iterations...
-		# 				#create 'conflict' within the swarm and
-		# 				#give all particles random velocities
-		# 	print('Particles are too friendly! Creating conflict...')
-		# 	for j in range(p): #iterating ovre the number of particles
-		# 		particle_velocity[j]=[(rnd.uniform(-abs(bounds[i][1]-bounds[i][0]),\
-		# 			abs(bounds[i][1]-bounds[i][0]))) for i in range(d)]
-		# 			#adding random velocity values for each dimension
-		# 	it_count=0 #reset iteration count
+			# determine if current particle is the best (globally)
+			if swarm[j].err_i < err_best_g or err_best_g == -1:
+				pos_best_g=list(swarm[j].position_i)
+				err_best_g=float(swarm[j].err_i)
 
-		for i in range(p): #iterates over each particle
-			rp,rg=rnd.uniform(0,1,2) #creates two random numbers between 0-
-			particle_velocity[i,:]+=(c1*rp*(particle_best[i,:]-particle_pos[i,:]))
-			particle_velocity[i,:]+=(c2*rg*(local_best[i,:]-particle_pos[i,:]))
-			particle_velocity[i,:]=particle_velocity[i,:]*K
-			if particle_velocity[i].any() > vmax: #is any velocity is greater than vmax
-					particle_velocity[i,:]=vmax #set velocity to vmax
-			#all of the above is regarding updating the particle's velocity
-			#with regards to various parameters (local_best, p_best etc..)
-			particle_pos[i,:]+=particle_velocity[i,:] #updating position
+		# cycle through swarm and update velocities and position
+		for j in range(0,n_particles):
+			swarm[j].update_velocity(pos_best_g)
+			swarm[j].update_position()
+		n_eval += n_particles
 
-			util.withinbounds(bounds,particle_pos[i]) #if particle is out of bounds
+		r_raw = [(np.array(swarm[j].position_i) - optimum) ** 2 for j in range(n_particles)]
+		r = np.mean(np.sqrt(np.sum(np.array(r_raw), axis = 1)))
 
-			particle_fitness[i]=evaluator(particle_pos[i])
-
-			if particle_fitness[i] < pos_val[i]:
-				particle_best[i,:]=particle_pos[i,:] #checking if new best
-				pos_val[i]=particle_fitness[i]
-				f_swarm_best=evaluator(swarm_best)
-				if particle_fitness[i] < f_swarm_best:
-					old_swarm_best=swarm_best[:]
-					swarm_best=copy.deepcopy(particle_best[i,:])
-					print(f"{n_eval}/{max_n_eval}, {f_swarm_best}")
-
-		local_best=util.local_best_get(particle_pos,pos_val,p)
+		print(f"{n_eval}/{max_n_eval}, {r} {err_best_g}")
 
 		if filepath:
 			csv_writer.writerow([
 				n_eval,
 				max_n_eval,
-				np.mean(particle_pos),
-				np.mean(np.std(particle_pos, axis=0)),
-				-np.mean(particle_fitness),
-				-sorted(particle_fitness)[0],
-				-f_swarm_best,
+				r,
+				np.mean(np.std([swarm[j].position_i for j in range(n_particles)], axis=0)),
+				-np.mean([swarm[j].err_i for j in range(n_particles)]),
+				-sorted([swarm[j].err_i for j in range(n_particles)])[0],
+				-err_best_g,
 			])
 
 	if filepath:
 		f.close()
-	print('Optimum at: ',swarm_best,'\n','Function at optimum: ',evaluator(swarm_best))
-	return evaluator(swarm_best)
+	# print final results
+	print('FINAL:')
+	print(pos_best_g)
+	print(err_best_g)
+	return err_best_g
 
-if False:
-	f=util.Rosenbrock
-	dimensions=10
-	dimension_bounds=[-2,2]
-	bounds=[0]*dimensions #creating 5 dimensional bounds
-	for i in range(dimensions):
-		bounds[i]=dimension_bounds
-
-	#creates bounds [[x1,x2],[x3,x4],[x5,x6]....]
-
-	p=60 #shouldn't really change
-	vmax=(dimension_bounds[1]-dimension_bounds[0])*0.75
-	c1=2.8 #shouldn't really change
-	c2=1.3 #shouldn't really change
-	max_n_eval=10000
-
-	particleswarm(f,bounds,p,c1,c2,vmax,max_n_eval)
-
-if __name__ == "__main__" :
+if __name__ == "__main__":
 	def sphere(x):
 		return -np.sum(x ** 2)
 
@@ -144,11 +146,14 @@ if __name__ == "__main__" :
 		x *= 5.12
 		return -10 * len(x) - np.sum(x ** 2) + 10 * np.sum(np.cos(2 * np.pi * x))
 
-	evaluator = sphere_offset
-	ndim = 20
+	n_dim = 20
+	evaluator = ackley
+	optimum = [0.5] * n_dim
+	max_n_eval = 100000
+	n_particles = n_dim * 100
 
-	fitness = particleswarm(
-		evaluator = lambda x: -evaluator(np.array(x, dtype=np.float)),
-		bounds = [[-1, 1] for _ in range(ndim)],
-		max_n_eval = int(1e5),
-		filepath="hoge.csv")
+	pso(lambda x: -evaluator(np.array(x, dtype=np.float)),
+		optimum,
+		n_dim,
+		n_particles,
+		max_n_eval)
