@@ -13,15 +13,23 @@ from keras.initializers import RandomUniform
 
 # Similar to CheatyNN, but use best_img instead of y.
 class GreedyNN():
-	def __init__(self, img_shape, n_gen_img, evaluator, noise_dim = 100, fixed_noise = False, filepath = None):
+	def __init__(
+			self,
+			img_shape,
+			evaluator,
+			optimum,
+			lr = 0.01,
+			noise_dim = 100,
+			fixed_noise = False,
+			filepath = None):
 		self.img_shape = img_shape
-		self.n_gen_img = n_gen_img
 		self.noise_dim = noise_dim
 		self.evaluator = evaluator
+		self.optimum = optimum
 		self.fixed_noise = fixed_noise
 		self.filepath = filepath
 
-		optimizer = Adam(0.001, 0.9)
+		optimizer = Adam(lr)
 
 		# Generator model
 		self.generator = self.build_generator()
@@ -47,12 +55,11 @@ class GreedyNN():
 		model.summary()
 		return model
 
-	def train(self, n_epoch, batch_size=64):
-		n_batches = self.n_gen_img // batch_size
-		print('Number of batches:', n_batches)
+	def train(self, max_n_eval, n_batch = 10, batch_size = 10):
 		best_fitness = np.NINF
 		best_img = np.random.uniform(-1.0, 1.0, (self.img_shape[1]))
 		noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
+		n_eval = 0
 
 		if self.filepath:
 			f = open(self.filepath, mode = "w")
@@ -60,7 +67,7 @@ class GreedyNN():
 			csv_writer.writerow([
 				"n_eval",
 				"max_n_eval",
-				"dist_mean",
+				"dist_r",
 				"dist_stddev",
 				"train_loss",
 				"fitness_mean",
@@ -68,8 +75,8 @@ class GreedyNN():
 				"fitness_best_so_far",
 			])
 
-		for epoch in range(n_epoch):
-			for iteration in range(n_batches):
+		while n_eval < max_n_eval:
+			for iteration in range(n_batch):
 				# ---------------------
 				#  Generator learning
 				# ---------------------
@@ -84,31 +91,27 @@ class GreedyNN():
 				g_loss = self.generator.train_on_batch(noise, y)
 
 				# swap
-				# best_index = np.argmax(gen_imgs_fitness)
 				best_index = np.unravel_index(np.argmax(gen_imgs_fitness), gen_imgs_fitness.shape)
 				if gen_imgs_fitness[best_index] > best_fitness:
 					best_fitness = gen_imgs_fitness[best_index]
 					best_img = gen_imgs[best_index]
 
+				n_eval += batch_size
+
 				# progress
-				# print("epoch:%d, iter:%d,  [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epoch, iteration, d_loss[0], 100*d_loss[1], g_loss))
-				print("epoch:%d/%d, iter:%d/%d, [G loss: %f] [mean: %f best: %f]" %
-					(epoch+1, n_epoch, iteration+1, n_batches, g_loss, np.mean(gen_imgs_fitness), best_fitness))
+				print("eval:%d/%d, iter:%d/%d, [G loss: %f] [mean: %f best: %f]" %
+					(n_eval, max_n_eval, iteration+1, n_batch,
+					g_loss, np.mean(gen_imgs_fitness), best_fitness))
 
-				n_eval = (epoch * n_batches + iteration + 1) * batch_size
-				print(f"{n_eval}/{batch_size * n_batches * n_epoch} fitness:{np.mean(gen_imgs_fitness)}, {best_fitness}")
-
-				mean = np.mean(gen_imgs, axis=0)
+				r = np.sqrt(np.sum((gen_imgs - self.optimum) ** 2, axis=2))
 				stddev = np.std(gen_imgs, axis=0)
-				print("mean:", np.mean(mean), ", stddev:", np.mean(stddev))
-
-				# print([self.evaluator(d) for d in gen_imgs], train_img_fitness[0])
+				print("r:", np.mean(r), ", stddev:", np.mean(stddev))
 
 				if self.filepath:
 					csv_writer.writerow([
 						n_eval,
-						batch_size * n_batches * n_epoch,
-						np.mean(mean),
+						max_n_eval,
+						np.mean(r),
 						np.mean(stddev),
 						g_loss,
 						np.mean(gen_imgs_fitness),
@@ -138,9 +141,9 @@ if __name__ == '__main__':
 		return -10 * len(x) - np.sum(x ** 2) + 10 * np.sum(np.cos(2 * np.pi * x))
 
 	nn = GreedyNN(
-		img_shape = (1, 5),
-		n_gen_img = 50,
+		img_shape = (1, 20),
 		evaluator = sphere_offset,
+		optimum = [0.5] * 20,
 		noise_dim = 1,
 		fixed_noise=True)
-	nn.train(n_epoch=100, batch_size=10)
+	nn.train(max_n_eval = 1000, n_batch = 10, batch_size = 10)

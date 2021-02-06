@@ -19,7 +19,6 @@ class GreedyNN_MP_MEM():
 	def __init__(
 			self,
 			img_shape,
-			n_gen_img,
 			evaluator,
 			optimum,
 			lr = 0.01,
@@ -27,7 +26,6 @@ class GreedyNN_MP_MEM():
 			fixed_noise = False,
 			filepath = None):
 		self.img_shape = img_shape
-		self.n_gen_img = n_gen_img
 		self.noise_dim = noise_dim
 		self.evaluator = evaluator
 		self.optimum = optimum
@@ -62,14 +60,14 @@ class GreedyNN_MP_MEM():
 
 		return model
 
-	def train(self, n_epoch, batch_size=64):
-		n_batches = self.n_gen_img // batch_size // self.img_shape[0]
-		print('Number of batches:', n_batches)
+	def train(self, max_n_eval, n_batch = 10, batch_size = 10):
+		print('Number of batches:', n_batch)
 		best_fitness = np.NINF
 		best_img = np.random.uniform(-1.0, 1.0, (self.img_shape[1]))
 		teacher_fitness = np.full((self.img_shape[0] - 1), np.NINF)
 		teacher_img = np.full((self.img_shape[0] - 1, self.img_shape[1]), np.NAN)
 		noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
+		n_eval = 0
 
 		if self.filepath:
 			f = open(self.filepath, mode = "w")
@@ -85,8 +83,8 @@ class GreedyNN_MP_MEM():
 				"fitness_best_so_far",
 			])
 
-		for epoch in range(n_epoch):
-			for iteration in range(n_batches):
+		while n_eval < max_n_eval:
+			for iteration in range(n_batch):
 				# ---------------------
 				#  Generator learning
 				# ---------------------
@@ -97,8 +95,6 @@ class GreedyNN_MP_MEM():
 				gen_fitness = np.apply_along_axis(self.evaluator, 2, gen_imgs)
 
 				# swap
-				# best_index = np.argmax(gen_fitness)
-				# best_index = np.unravel_index(np.argmax(gen_fitness), gen_fitness.shape)
 				ascending_indice = np.unravel_index(
 					np.argsort(gen_fitness.flatten()), gen_fitness.shape)
 				if gen_fitness[ascending_indice][-1] > best_fitness:
@@ -140,28 +136,22 @@ class GreedyNN_MP_MEM():
 				y = np.tile(y_raw, (batch_size, 1, 1))
 				g_loss = self.generator.train_on_batch(noise, y)
 
-				# progress
-				# print ("epoch:%d, iter:%d,  [D loss: %f, acc.: %.2f%%] [G loss: %f]" %
-				# 	(epoch, iteration, d_loss[0], 100*d_loss[1], g_loss))
-				print ("epoch:%d/%d, iter:%d/%d, [G loss: %f] [mean: %f best: %f]" %
-					(epoch+1, n_epoch, iteration+1, n_batches,
-					g_loss, np.mean(gen_fitness), best_fitness))
+				n_eval += batch_size * self.img_shape[0]
 
-				n_eval = (epoch * n_batches + iteration + 1) * batch_size * self.img_shape[0]
-				print(f"{n_eval}/{batch_size * n_batches * n_epoch * self.img_shape[0]} "
-					f"fitness:{np.mean(gen_fitness):.3}, {best_fitness:.3}, {teacher_fitness}")
+				# progress
+				print ("eval:%d/%d, iter:%d/%d, [G loss: %f] [mean: %f best: %f]" %
+					(n_eval, max_n_eval, iteration+1, n_batch,
+					g_loss, np.mean(gen_fitness), best_fitness))
+				print(f"     {teacher_fitness}")
 
 				r = np.sqrt(np.sum((gen_imgs - self.optimum) ** 2, axis=2))
 				stddev = np.std(gen_imgs, axis=0)
-
 				print("r:", np.mean(r), ", stddev:", np.mean(stddev))
-
-				# print([self.evaluator(d) for d in gen_imgs], train_img_fitness[0])
 
 				if self.filepath:
 					csv_writer.writerow([
 						n_eval,
-						batch_size * n_batches * n_epoch * self.img_shape[0],
+						max_n_eval,
 						np.mean(r),
 						np.mean(stddev),
 						g_loss,
@@ -195,10 +185,9 @@ if __name__ == '__main__':
 
 	nn = GreedyNN_MP_MEM(
 		img_shape = (3, n_dim),
-		n_gen_img = 50,
 		evaluator = sphere_offset,
 		optimum = [0.5] * n_dim,
 		noise_dim = 1,
 		fixed_noise=True)
-	best_fitness = nn.train(n_epoch=100, batch_size=10)
-	print(best_fitness)
+	f = nn.train(n_eval=100, n_batch=10, batch_size=10)
+	print(f)
