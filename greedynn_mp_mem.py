@@ -21,6 +21,7 @@ class GreedyNN_MP_MEM():
 			img_shape,
 			n_gen_img,
 			evaluator,
+			optimum,
 			lr = 0.01,
 			noise_dim = 100,
 			fixed_noise = False,
@@ -29,6 +30,7 @@ class GreedyNN_MP_MEM():
 		self.n_gen_img = n_gen_img
 		self.noise_dim = noise_dim
 		self.evaluator = evaluator
+		self.optimum = optimum
 		self.fixed_noise = fixed_noise
 		self.filepath = filepath
 
@@ -75,7 +77,7 @@ class GreedyNN_MP_MEM():
 			csv_writer.writerow([
 				"n_eval",
 				"max_n_eval",
-				"dist_mean",
+				"dist_r",
 				"dist_stddev",
 				"train_loss",
 				"fitness_mean",
@@ -149,9 +151,10 @@ class GreedyNN_MP_MEM():
 				print(f"{n_eval}/{batch_size * n_batches * n_epoch * self.img_shape[0]} "
 					f"fitness:{np.mean(gen_fitness):.3}, {best_fitness:.3}, {teacher_fitness}")
 
-				mean = np.mean(gen_imgs, axis=0)
+				r = np.sqrt(np.sum((gen_imgs - self.optimum) ** 2, axis=2))
 				stddev = np.std(gen_imgs, axis=0)
-				print("mean:", np.mean(mean), ", stddev:", np.mean(stddev))
+
+				print("r:", np.mean(r), ", stddev:", np.mean(stddev))
 
 				# print([self.evaluator(d) for d in gen_imgs], train_img_fitness[0])
 
@@ -159,7 +162,7 @@ class GreedyNN_MP_MEM():
 					csv_writer.writerow([
 						n_eval,
 						batch_size * n_batches * n_epoch * self.img_shape[0],
-						np.mean(mean),
+						np.mean(r),
 						np.mean(stddev),
 						g_loss,
 						np.mean(gen_fitness),
@@ -188,10 +191,13 @@ if __name__ == '__main__':
 		x *= 5.12
 		return -10 * len(x) - np.sum(x ** 2) + 10 * np.sum(np.cos(2 * np.pi * x))
 
+	n_dim = 5
+
 	nn = GreedyNN_MP_MEM(
-		img_shape = (3, 5),
+		img_shape = (3, n_dim),
 		n_gen_img = 50,
 		evaluator = sphere_offset,
+		optimum = [0.5] * n_dim,
 		noise_dim = 1,
 		fixed_noise=True)
 	best_fitness = nn.train(n_epoch=100, batch_size=10)

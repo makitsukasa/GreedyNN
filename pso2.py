@@ -57,6 +57,7 @@ class Particle:
 			# 	self.position_i[i]=bounds[i][0]
 
 def pso(evaluator,
+		optimum,
 		n_dim = 10,
 		n_particles = 60,
 		max_n_eval = 1000,
@@ -74,7 +75,7 @@ def pso(evaluator,
 		csv_writer.writerow([
 			"n_eval",
 			"max_n_eval",
-			"dist_mean",
+			"dist_r",
 			"dist_stddev",
 			"fitness_mean",
 			"fitness_best",
@@ -104,13 +105,17 @@ def pso(evaluator,
 			swarm[j].update_velocity(pos_best_g)
 			swarm[j].update_position()
 		n_eval += n_particles
-		print(f"{n_eval}/{max_n_eval}, {err_best_g}")
+
+		r_raw = [(np.array(swarm[j].position_i) - optimum) ** 2 for j in range(n_particles)]
+		r = np.mean(np.sqrt(np.sum(np.array(r_raw), axis = 1)))
+
+		print(f"{n_eval}/{max_n_eval}, {r} {err_best_g}")
 
 		if filepath:
 			csv_writer.writerow([
 				n_eval,
 				max_n_eval,
-				np.mean([swarm[j].position_i for j in range(n_particles)]),
+				r,
 				np.mean(np.std([swarm[j].position_i for j in range(n_particles)], axis=0)),
 				-np.mean([swarm[j].err_i for j in range(n_particles)]),
 				-sorted([swarm[j].err_i for j in range(n_particles)])[0],
@@ -141,12 +146,14 @@ if __name__ == "__main__":
 		x *= 5.12
 		return -10 * len(x) - np.sum(x ** 2) + 10 * np.sum(np.cos(2 * np.pi * x))
 
-	evaluator = rastrigin
 	n_dim = 20
-	max_n_eval = 30000
-	n_particles = 200
+	evaluator = ackley
+	optimum = [0.5] * n_dim
+	max_n_eval = 100000
+	n_particles = n_dim * 100
 
 	pso(lambda x: -evaluator(np.array(x, dtype=np.float)),
+		optimum,
 		n_dim,
 		n_particles,
 		max_n_eval)

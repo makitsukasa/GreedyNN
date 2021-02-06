@@ -42,19 +42,19 @@ def rastrigin_offset(x_):
 	return -10 * len(x) - np.sum(x ** 2) + 10 * np.sum(np.cos(2 * np.pi * x))
 
 n_dim = 20
-n_loop = 1
-# evaluator = sphere          ; n_gen_img = 100; n_epoch = 100
-# evaluator = sphere          ; n_gen_img = 100; n_epoch = 1000
-# evaluator = sphere_offset   ; n_gen_img = 100; n_epoch = 100
-# evaluator = sphere_offset   ; n_gen_img = 100; n_epoch = 1000
-# evaluator = ackley          ; n_gen_img = 100; n_epoch = 1000
-# evaluator = ackley          ; n_gen_img = 100; n_epoch = 10000
-# evaluator = ackley_offset   ; n_gen_img = 100; n_epoch = 1000
-# evaluator = ackley_offset   ; n_gen_img = 100; n_epoch = 10000
-# evaluator = rastrigin       ; n_gen_img = 100; n_epoch = 1000
-# evaluator = rastrigin       ; n_gen_img = 100; n_epoch = 10000
-# evaluator = rastrigin_offset; n_gen_img = 100; n_epoch = 1000
-evaluator = rastrigin_offset; n_gen_img = 100; n_epoch = 10000
+n_loop = 10
+# evaluator = sphere          ; optimum = [0.0] * n_dim; n_gen_img = 100; n_epoch = 100
+# evaluator = sphere          ; optimum = [0.0] * n_dim; n_gen_img = 100; n_epoch = 1000
+# evaluator = sphere_offset   ; optimum = [0.5] * n_dim; n_gen_img = 100; n_epoch = 100
+# evaluator = sphere_offset   ; optimum = [0.5] * n_dim; n_gen_img = 100; n_epoch = 1000
+# evaluator = ackley          ; optimum = [0.0] * n_dim; n_gen_img = 100; n_epoch = 1000
+# evaluator = ackley          ; optimum = [0.0] * n_dim; n_gen_img = 100; n_epoch = 10000
+# evaluator = ackley_offset   ; optimum = [0.5] * n_dim; n_gen_img = 100; n_epoch = 1000
+# evaluator = ackley_offset   ; optimum = [0.5] * n_dim; n_gen_img = 100; n_epoch = 10000
+# evaluator = rastrigin       ; optimum = [0.0] * n_dim; n_gen_img = 100; n_epoch = 1000
+# evaluator = rastrigin       ; optimum = [0.0] * n_dim; n_gen_img = 100; n_epoch = 10000
+# evaluator = rastrigin_offset; optimum = [0.5] * n_dim; n_gen_img = 100; n_epoch = 1000
+evaluator = rastrigin_offset; optimum = [0.5] * n_dim; n_gen_img = 100; n_epoch = 10000
 
 batch_size = 10
 # y = np.array([0.0 for _ in range(n_dim)])
@@ -106,6 +106,7 @@ for loop in range(n_loop):
 	# 	img_shape = (10, n_dim),
 	# 	n_gen_img = n_gen_img,
 	# 	evaluator = evaluator,
+	# 	optimum = optimum,
 	# 	lr = lr,
 	# 	noise_dim = 1,
 	# 	filepath = f"{bench_dir}greedynn_mp_mem_lr{lr}_{loop}.csv")
@@ -163,11 +164,13 @@ for loop in range(n_loop):
 	# 	max_n_eval = n_epoch * n_gen_img,
 	# 	filepath = f"{bench_dir}pso_{loop}.csv")
 
+	n_particles = n_dim * 100
 	f = pso2.pso(
 		evaluator = lambda x: -evaluator(np.array(x, dtype=np.float)),
+		optimum = optimum,
 		n_dim = n_dim,
-		n_particles = 200,
+		n_particles = n_particles,
 		max_n_eval = n_epoch * n_gen_img,
-		filepath = f"{bench_dir}pso_{loop}.csv")
+		filepath = f"{bench_dir}pso_p{n_particles}_{loop}.csv")
 
 print(env_str)
