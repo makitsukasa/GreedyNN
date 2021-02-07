@@ -15,7 +15,7 @@ import warnings
 warnings.simplefilter('ignore', np.RankWarning)
 np.set_printoptions(formatter={'float': '{:.3}'.format})
 
-class GreedyNN_MP():
+class GreedyNN_MP_Greedy():
 	def __init__(
 			self,
 			img_shape,
@@ -107,8 +107,7 @@ class GreedyNN_MP():
 				teacher_fitness_pred_error = np.copy(teacher_fitness)
 				for i in range(gen_imgs.shape[2]):
 					p = np.polyfit(gen_imgs[:, :, i].flatten(), gen_fitness.flatten(), 2)
-					if p[0] < 0:
-						p[0] = p[1] = 0
+					p[0] = p[1] = 0
 					y_pred = (p[0] * gen_imgs[:, :, i] ** 2 +
 						p[1] * gen_imgs[:, :, i] + p[2]) / gen_imgs.shape[2]
 					fitness_pred_error -= np.reshape(y_pred, fitness_pred_error.shape)
@@ -142,7 +141,7 @@ class GreedyNN_MP():
 				print ("eval:%d/%d, iter:%d/%d, [G loss: %f] [mean: %f best: %f]" %
 					(n_eval, max_n_eval, iteration+1, n_batch,
 					g_loss, np.mean(gen_fitness), best_fitness))
-				print(f"b {best_fitness:.3} t {teacher_fitness}")
+				print(f"b {np.append(np.array([best_fitness]), teacher_fitness)}")
 
 				r = np.sqrt(np.sum((gen_imgs - self.optimum) ** 2, axis=2))
 				stddev = np.std(gen_imgs, axis=0)
@@ -183,7 +182,7 @@ if __name__ == '__main__':
 
 	n_dim = 5
 
-	nn = GreedyNN_MP(
+	nn = GreedyNN_MP_Greedy(
 		img_shape = (3, n_dim),
 		evaluator = sphere_offset,
 		optimum = [0.5] * n_dim,
