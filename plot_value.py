@@ -2,16 +2,7 @@ import sys
 import argparse
 import csv
 import glob
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-from scipy import stats
 import numpy as np
-
-font = {"family": "Noto Sans CJK JP"}
-mpl.rc('font', **font)
-plt.rcParams["mathtext.default"] = "regular"
-plt.rcParams["font.size"] = 14
-mpl.rc('figure.subplot', left=0.15, right=0.95, bottom=0.15, top=0.95)
 
 def plot(filenames, xfield, yfields, yerrors, labels, xlabel, ylabel, log_scaled = False, x_max = None, hide_legend = False):
 	if isinstance(filenames, str):
@@ -76,35 +67,8 @@ def plot(filenames, xfield, yfields, yerrors, labels, xlabel, ylabel, log_scaled
 
 	for method_name, data in datas.items():
 		for i in range(len(yfields)):
-			if labels is not None and yfields[i] in labels:
-				label = labels[yfields[i]]
-			else:
-				# label = method_name + "," + yfields[i]
-				label = method_name
-			if yerrors:
-				if yfields[i] in data and yerrors[i] in data:
-					plt.errorbar(
-						data[xfield],
-						data[yfields[i]],
-						yerr = data[yerrors[i]],
-						elinewidth = 0.2,
-						label = label)
-			else:
-				if yfields[i] in data:
-					plt.plot(
-						data[xfield],
-						data[yfields[i]],
-						label = label)
-
-	if log_scaled:
-		plt.yscale("log")
-	if x_max is not None:
-		plt.xlim(None, float(x_max))
-	if not hide_legend:
-		plt.legend()
-	plt.xlabel(xlabel)
-	plt.ylabel(ylabel)
-	plt.show()
+			print(method_name, yfields[i])
+			print(data[yfields[i]][-1])
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()

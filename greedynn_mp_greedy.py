@@ -143,7 +143,7 @@ class GreedyNN_MP_Greedy():
 					g_loss, np.mean(gen_fitness), best_fitness))
 				print(f"b {np.append(np.array([best_fitness]), teacher_fitness)}")
 
-				r = np.sqrt(np.sum((gen_imgs - self.optimum) ** 2, axis=2))
+				r = np.sqrt(np.sum((best_img - self.optimum) ** 2))
 				stddev = np.std(gen_imgs, axis=0)
 				print("r:", np.mean(r), ", stddev:", np.mean(stddev))
 

@@ -106,8 +106,7 @@ def pso(evaluator,
 			swarm[j].update_position()
 		n_eval += n_particles
 
-		r_raw = [(np.array(swarm[j].position_i) - optimum) ** 2 for j in range(n_particles)]
-		r = np.mean(np.sqrt(np.sum(np.array(r_raw), axis = 1)))
+		r = np.sqrt(np.sum((np.array(pos_best_g) - optimum) ** 2))
 
 		print(f"{n_eval}/{max_n_eval}, {r} {err_best_g}")
 
