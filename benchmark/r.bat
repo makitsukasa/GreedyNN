@@ -1,2 +1,2 @@
-python ../plot.py -f %* -x n_eval -y dist_r --ylabel 最良解と大域的最適解の距離
+python ../plot.py -f %* -x n_eval -y dist_r --xlabel 解候補の評価回数 --ylabel 最良解と大域的最適解の距離
 if errorlevel 1 pause

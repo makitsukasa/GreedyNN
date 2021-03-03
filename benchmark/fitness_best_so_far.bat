@@ -1,2 +1,2 @@
-python ../plot.py -f %* -x n_eval -y fitness_best_so_far --ylabel 目的関数値
+python ../plot.py -f %* -x n_eval -y fitness_best_so_far --xlabel 解候補の評価回数 --ylabel 目的関数値 --reverse_y
 if errorlevel 1 pause

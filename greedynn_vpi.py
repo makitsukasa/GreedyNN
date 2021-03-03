@@ -15,7 +15,7 @@ import warnings
 warnings.simplefilter('ignore', np.RankWarning)
 np.set_printoptions(formatter={'float': '{:.3}'.format})
 
-class GreedyNN_VP():
+class GreedyNN_VPI():
 	def __init__(
 			self,
 			img_shape,
@@ -68,7 +68,7 @@ class GreedyNN_VP():
 		teacher_img = np.full((self.img_shape[0] - 1, self.img_shape[1]), np.NAN)
 		noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
 		n_eval = 0
-		n_p = int(self.img_shape[0])
+		n_p = 1
 		print(n_p)
 
 		if self.filepath:
@@ -83,6 +83,7 @@ class GreedyNN_VP():
 				"fitness_mean",
 				"fitness_best",
 				"fitness_best_so_far",
+				"n_p",
 			])
 
 		while n_eval < max_n_eval:
@@ -135,21 +136,24 @@ class GreedyNN_VP():
 				gen_error_ascending_indice = np.unravel_index(
 					np.argsort(fitness_pred_error.flatten()), fitness_pred_error.shape)
 
-				y_raw = np.append(teacher_img[1 - n_p:],
-					np.tile(best_img, (self.img_shape[0] - n_p + 1, 1)), axis=0)
+				if n_p == 1:
+					y_raw = np.tile(best_img, (self.img_shape[0], 1))
+				else:
+					y_raw = np.append(teacher_img[1 - n_p:],
+						np.tile(best_img, (self.img_shape[0] - n_p + 1, 1)), axis=0)
 				y = np.tile(y_raw, (batch_size, 1, 1))
 				g_loss = self.generator.train_on_batch(noise, y)
 
 				n_eval += batch_size * n_p
 
-				n_p = int(self.img_shape[0] - np.ceil(
-					(self.img_shape[0] - 2) * np.clip(np.log10(g_loss + 1e-13) / -5, 0, 1)))
-
 				# progress
 				print ("eval:%d/%d, iter:%d/%d, [G loss: %f, n_p: %d] [mean: %f best: %f]" %
 					(n_eval, max_n_eval, iteration+1, n_batch,
 					g_loss, n_p, np.mean(gen_fitness), best_fitness))
-				print(f"b {best_fitness:.3} t {teacher_fitness[-n_p:]}")
+				if n_p == 1:
+					print(f"b {best_fitness:.3}")
+				else:
+					print(f"b {best_fitness:.3} t {teacher_fitness[-n_p:]}")
 
 				r = np.sqrt(np.sum((gen_imgs - self.optimum) ** 2, axis=2))
 				stddev = np.std(gen_imgs, axis=0)
@@ -165,7 +169,11 @@ class GreedyNN_VP():
 						np.mean(gen_fitness),
 						gen_fitness[ascending_indice][-1],
 						best_fitness,
+						n_p,
 					])
+
+				n_p = int(np.ceil(np.clip(
+					-(self.img_shape[0] / 2) * np.log10(g_loss), 2, self.img_shape[0])))
 
 		print(best_fitness)
 		if self.filepath:
@@ -190,7 +198,7 @@ if __name__ == '__main__':
 
 	n_dim = 5
 
-	nn = GreedyNN_VP(
+	nn = GreedyNN_VPI(
 		img_shape = (5, n_dim),
 		evaluator = sphere_offset,
 		optimum = [0.5] * n_dim,

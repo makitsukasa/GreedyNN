@@ -1,4 +1,5 @@
 ### -*-coding:utf-8-*-
+import os
 import sys
 import csv
 import numpy as np
@@ -15,7 +16,7 @@ import warnings
 warnings.simplefilter('ignore', np.RankWarning)
 np.set_printoptions(formatter={'float': '{:.3}'.format})
 
-class GreedyNN_MP():
+class GreedyNN_MP_distribution():
 	def __init__(
 			self,
 			img_shape,
@@ -24,13 +25,17 @@ class GreedyNN_MP():
 			lr = 0.01,
 			noise_dim = 100,
 			fixed_noise = False,
-			filepath = None):
+			filepath = None,
+			filepath_distribution_before = None,
+			filepath_distribution_after = None):
 		self.img_shape = img_shape
 		self.noise_dim = noise_dim
 		self.evaluator = evaluator
 		self.optimum = optimum
 		self.fixed_noise = fixed_noise
 		self.filepath = filepath
+		self.filepath_distribution_before = filepath_distribution_before
+		self.filepath_distribution_after = filepath_distribution_after
 
 		optimizer = Adam(lr)
 
@@ -69,6 +74,18 @@ class GreedyNN_MP():
 		noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
 		n_eval = 0
 
+		if self.filepath_distribution_before:
+			os.makedirs(os.path.dirname(self.filepath_distribution_before), exist_ok=True)
+			f = open(self.filepath_distribution_before, mode = "w")
+			csv_writer = csv.writer(f)
+			for _ in range(10):
+				noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
+				gen_imgs = self.generator.predict(noise)
+				gen_imgs.reshape(-1, gen_imgs.shape[2])
+				for row in gen_imgs.reshape(-1, gen_imgs.shape[2]):
+					csv_writer.writerow(row)
+			f.close()
+
 		if self.filepath:
 			f = open(self.filepath, mode = "w")
 			csv_writer = csv.writer(f)
@@ -81,7 +98,6 @@ class GreedyNN_MP():
 				"fitness_mean",
 				"fitness_best",
 				"fitness_best_so_far",
-				"n_p",
 			])
 
 		while n_eval < max_n_eval:
@@ -160,12 +176,24 @@ class GreedyNN_MP():
 						np.mean(gen_fitness),
 						gen_fitness[ascending_indice][-1],
 						best_fitness,
-						self.img_shape[0],
 					])
 
 		print(best_fitness)
 		if self.filepath:
 			f.close()
+
+		if self.filepath_distribution_after:
+			os.makedirs(os.path.dirname(self.filepath_distribution_after), exist_ok=True)
+			f = open(self.filepath_distribution_after, mode = "w")
+			csv_writer = csv.writer(f)
+			for _ in range(10):
+				noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
+				gen_imgs = self.generator.predict(noise)
+				gen_imgs.reshape(-1, gen_imgs.shape[2])
+				for row in gen_imgs.reshape(-1, gen_imgs.shape[2]):
+					csv_writer.writerow(row)
+			f.close()
+
 		return best_fitness
 
 if __name__ == '__main__':
@@ -184,13 +212,16 @@ if __name__ == '__main__':
 		x *= 5.12
 		return -10 * len(x) - np.sum(x ** 2) + 10 * np.sum(np.cos(2 * np.pi * x))
 
+	evaluator = sphere_offset
 	n_dim = 5
 
-	nn = GreedyNN_MP(
+	nn = GreedyNN_MP_distribution(
 		img_shape = (3, n_dim),
-		evaluator = sphere_offset,
+		evaluator = evaluator,
 		optimum = [0.5] * n_dim,
 		noise_dim = 1,
-		fixed_noise=True)
+		fixed_noise=True,
+		filepath_distribution_before=f"benchmark/distribution/{evaluator.__name__}_before.csv",
+		filepath_distribution_after=f"benchmark/distribution/{evaluator.__name__}_after.csv")
 	f = nn.train(max_n_eval=100, n_batch=10, batch_size=10)
 	print(f)

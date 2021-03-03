@@ -73,6 +73,7 @@ class GreedyNN():
 				"fitness_mean",
 				"fitness_best",
 				"fitness_best_so_far",
+				"n_p",
 			])
 
 		while n_eval < max_n_eval:
@@ -117,6 +118,7 @@ class GreedyNN():
 						np.mean(gen_imgs_fitness),
 						gen_imgs_fitness[best_index],
 						best_fitness,
+						1,
 					])
 
 		print(best_fitness)

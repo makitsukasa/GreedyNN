@@ -3,7 +3,6 @@ import argparse
 import csv
 import glob
 import matplotlib.pyplot as plt
-from matplotlib.ticker import ScalarFormatter
 import matplotlib as mpl
 from scipy import stats
 import numpy as np
@@ -14,8 +13,7 @@ plt.rcParams["mathtext.default"] = "regular"
 plt.rcParams["font.size"] = 14
 mpl.rc('figure.subplot', left=0.15, right=0.95, bottom=0.15, top=0.95)
 
-def plot(filenames, xfield, yfields, yerrors, labels, xlabel, ylabel,
-		log_scaled = False, x_max = None, hide_legend = False, reverse_y = False):
+def plot(filenames, xfield, yfields, yerrors, labels, xlabel, ylabel, log_scaled = False, x_max = None, hide_legend = False):
 	if isinstance(filenames, str):
 		filenames = [filenames]
 
@@ -83,8 +81,6 @@ def plot(filenames, xfield, yfields, yerrors, labels, xlabel, ylabel,
 			else:
 				# label = method_name + "," + yfields[i]
 				label = method_name
-			if reverse_y:
-				data[yfields[i]] = -data[yfields[i]]
 			if yerrors:
 				if yfields[i] in data and yerrors[i] in data:
 					plt.errorbar(
@@ -106,7 +102,6 @@ def plot(filenames, xfield, yfields, yerrors, labels, xlabel, ylabel,
 		plt.xlim(None, float(x_max))
 	if not hide_legend:
 		plt.legend()
-	plt.gca().yaxis.set_major_formatter(ScalarFormatter(useMathText=True))
 	plt.xlabel(xlabel)
 	plt.ylabel(ylabel)
 	plt.show()
@@ -121,8 +116,7 @@ if __name__ == '__main__':
 	parser.add_argument("-l", "--log_scaled", action = "store_true")
 	parser.add_argument("-m", "--max", action = "store")
 	parser.add_argument("--hide_legend", action = "store_true")
-	parser.add_argument("--reverse_y", action = "store_true")
-	parser.add_argument("--xlabel", default = "") # "Number of times individuals are evaluated"
+	parser.add_argument("--xlabel", default = "個体の評価回数") # "Number of times individuals are evaluated"
 	parser.add_argument("--ylabel", default = "") # "Objective function value"
 	args = parser.parse_args()
 
@@ -136,5 +130,4 @@ if __name__ == '__main__':
 		args.ylabel,
 		args.log_scaled,
 		args.max,
-		args.hide_legend,
-		args.reverse_y)
+		args.hide_legend)

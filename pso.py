@@ -33,7 +33,8 @@ class Particle:
 	def update_velocity(self,pos_best_g):
 		c1 = 2.8        # cognative constant
 		c2 = 1.3        # social constant
-		w = 2/(abs(2-(c1+c2)-np.sqrt(((c1+c2)**2)-(4*(c1+c2)))))       # constant inertia weight (how much to weigh the previous velocity)
+		# w = 2/(abs(2-(c1+c2)-np.sqrt(((c1+c2)**2)-(4*(c1+c2)))))       # constant inertia weight (how much to weigh the previous velocity)
+		w = 0.73
 
 		for i in range(0,self.num_dimensions):
 			r1=random.uniform(0, 1)

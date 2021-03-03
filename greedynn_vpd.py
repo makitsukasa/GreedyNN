@@ -15,7 +15,7 @@ import warnings
 warnings.simplefilter('ignore', np.RankWarning)
 np.set_printoptions(formatter={'float': '{:.3}'.format})
 
-class GreedyNN_MP():
+class GreedyNN_VPD():
 	def __init__(
 			self,
 			img_shape,
@@ -68,6 +68,8 @@ class GreedyNN_MP():
 		teacher_img = np.full((self.img_shape[0] - 1, self.img_shape[1]), np.NAN)
 		noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
 		n_eval = 0
+		n_p = int(self.img_shape[0])
+		print(n_p)
 
 		if self.filepath:
 			f = open(self.filepath, mode = "w")
@@ -93,6 +95,7 @@ class GreedyNN_MP():
 				if not self.fixed_noise:
 					noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
 				gen_imgs = self.generator.predict(noise)
+				gen_imgs = gen_imgs[:, -n_p:, :]
 				gen_fitness = np.apply_along_axis(self.evaluator, 2, gen_imgs)
 
 				# swap
@@ -127,41 +130,50 @@ class GreedyNN_MP():
 					np.isfinite(vstacked_imgs).all(axis = 1) &
 					(vstacked_imgs != best_img).all(axis = 1))]
 
-				teacher_img = vstacked_imgs[error_ascending_indice][-teacher_img.shape[0]:]
-				teacher_fitness = vstacked_fitnesses[error_ascending_indice][-teacher_img.shape[0]:]
+				teacher_img = vstacked_imgs[error_ascending_indice]
+				teacher_fitness = vstacked_fitnesses[error_ascending_indice]
 
 				gen_error_ascending_indice = np.unravel_index(
 					np.argsort(fitness_pred_error.flatten()), fitness_pred_error.shape)
 
-				y_raw = np.append([best_img], teacher_img, axis=0)
+				if n_p == 1:
+					y_raw = np.tile(best_img, (self.img_shape[0], 1))
+				else:
+					y_raw = np.append(teacher_img[1 - n_p:],
+						np.tile(best_img, (self.img_shape[0] - n_p + 1, 1)), axis=0)
 				y = np.tile(y_raw, (batch_size, 1, 1))
-				for _ in range(1):
-					g_loss = self.generator.train_on_batch(noise, y)
+				g_loss = self.generator.train_on_batch(noise, y)
 
-				n_eval += batch_size * self.img_shape[0]
+				n_eval += batch_size * n_p
 
 				# progress
-				print ("eval:%d/%d, iter:%d/%d, [G loss: %f] [mean: %f best: %f]" %
+				print ("eval:%d/%d, iter:%d/%d, [G loss: %f, n_p: %d] [mean: %f best: %f]" %
 					(n_eval, max_n_eval, iteration+1, n_batch,
-					g_loss, np.mean(gen_fitness), best_fitness))
-				print(f"b {best_fitness:.3} t {teacher_fitness}")
+					g_loss, n_p, np.mean(gen_fitness), best_fitness))
+				if n_p == 1:
+					print(f"b {best_fitness:.3}")
+				else:
+					print(f"b {best_fitness:.3} t {teacher_fitness[-n_p:]}")
 
-				r = np.sqrt(np.sum((best_img - self.optimum) ** 2))
-				stddev = np.std(best_img, axis=0)
-				print("r:", r, ", stddev:", np.mean(stddev))
+				r = np.sqrt(np.sum((gen_imgs - self.optimum) ** 2, axis=2))
+				stddev = np.std(gen_imgs, axis=0)
+				print("r:", np.mean(r), np.min(r), ", stddev:", np.mean(stddev))
 
 				if self.filepath:
 					csv_writer.writerow([
 						n_eval,
 						max_n_eval,
-						r,
+						np.min(r),
 						np.mean(stddev),
 						g_loss,
 						np.mean(gen_fitness),
 						gen_fitness[ascending_indice][-1],
 						best_fitness,
-						self.img_shape[0],
+						n_p,
 					])
+
+				n_p = int(np.ceil(np.clip(self.img_shape[0] +
+					(self.img_shape[0] / 2) * np.log10(g_loss), 1, self.img_shape[0])))
 
 		print(best_fitness)
 		if self.filepath:
@@ -186,11 +198,11 @@ if __name__ == '__main__':
 
 	n_dim = 5
 
-	nn = GreedyNN_MP(
-		img_shape = (3, n_dim),
+	nn = GreedyNN_VPD(
+		img_shape = (5, n_dim),
 		evaluator = sphere_offset,
 		optimum = [0.5] * n_dim,
 		noise_dim = 1,
 		fixed_noise=True)
-	f = nn.train(max_n_eval=100, n_batch=10, batch_size=10)
+	f = nn.train(max_n_eval=2000, n_batch=10, batch_size=10)
 	print(f)
