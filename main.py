@@ -23,12 +23,12 @@ n_loop = 10
 # setting = (rastrigin_offset, [0.5] * n_dim, int(5e6+1), 40, 160, n_dim * 100) #
 # evaluator, optimum, n_eval, p, batch_size, n_particles = setting
 
-evaluator, n_eval = sphere_offset, int(5e4)
+# evaluator, n_eval = sphere_offset, int(5e4)
 # evaluator, n_eval = ktablet_offset, int(1e5)
 # evaluator, n_eval = bohachevsky_offset, int(1e5)
 # evaluator, n_eval = ackley_offset, int(1e5)
 # evaluator, n_eval = schaffer_offset, int(5e5)
-# evaluator, n_eval = rastrigin_offset, int(5e5)
+evaluator, n_eval = rastrigin_offset, int(5e5)
 optimum, p, batch_size, n_particles = [0.5] * n_dim, 5, 15, n_dim * 100
 
 # y = np.array([0.0 for _ in range(n_dim)])
@@ -86,7 +86,7 @@ for loop in range(n_loop):
 		optimum = optimum,
 		lr = lr,
 		noise_dim = 3,
-		filepath = f"{bench_dir}減らす_p{p}_{loop}.csv")
+		filepath = f"{bench_dir}減らす_{loop}.csv")
 	f = n.train(max_n_eval = n_eval, n_batch = 10, batch_size = batch_size)
 
 	# f = pso.pso(
