@@ -3,6 +3,7 @@ import numpy as np
 import greedynn
 import greedynn_mp
 import greedynn_mp_greedy
+import greedynn_mp_notrain
 import greedynn_mp_distribution
 import greedynn_vpi
 import greedynn_vpd
@@ -22,12 +23,12 @@ n_loop = 10
 # setting = (rastrigin_offset, [0.5] * n_dim, int(5e6+1), 40, 160, n_dim * 100) #
 # evaluator, optimum, n_eval, p, batch_size, n_particles = setting
 
-evaluator, n_eval = sphere_offset, int(5e4)
+evaluator, n_eval = sphere_offset, int(5e4) + 1
 # evaluator, n_eval = ktablet_offset, int(1e5)
 # evaluator, n_eval = bohachevsky_offset, int(1e5)
-# evaluator, n_eval = ackley_offset, int(1e5)
+# evaluator, n_eval = ackley_offset, int(1e5) + 1
 # evaluator, n_eval = schaffer_offset, int(5e5)
-# evaluator, n_eval = rastrigin_offset, int(5e5)
+# evaluator, n_eval = rastrigin_offset, int(5e5) + 1
 optimum, p, batch_size, n_particles = [0.5] * n_dim, 5, 15, n_dim * 100
 
 # y = np.array([0.0 for _ in range(n_dim)])
@@ -38,35 +39,35 @@ bench_dir = f"benchmark/{env_str}/"
 os.makedirs(bench_dir, exist_ok=True)
 
 for loop in range(n_loop):
+	# lr = 0.01
+	# n = greedynn.GreedyNN(
+	# 	img_shape = (1, n_dim),
+	# 	evaluator = evaluator,
+	# 	optimum = optimum,
+	# 	lr = lr,
+	# 	noise_dim = 3,
+	# 	filepath = f"{bench_dir}1点_{loop}.csv")
+	# f = n.train(max_n_eval = n_eval, n_batch = 10, batch_size = batch_size)
+
 	lr = 0.01
-	n = greedynn.GreedyNN(
-		img_shape = (1, n_dim),
+	n = greedynn_mp.GreedyNN_MP(
+		img_shape = (p, n_dim),
 		evaluator = evaluator,
 		optimum = optimum,
 		lr = lr,
 		noise_dim = 3,
-		filepath = f"{bench_dir}1点_{loop}.csv")
+		filepath = f"{bench_dir}学習あり_{loop}.csv")
 	f = n.train(max_n_eval = n_eval, n_batch = 10, batch_size = batch_size)
 
-	# lr = 0.01
-	# n = greedynn_mp.GreedyNN_MP(
-	# 	img_shape = (p, n_dim),
-	# 	evaluator = evaluator,
-	# 	optimum = optimum,
-	# 	lr = lr,
-	# 	noise_dim = 3,
-	# 	filepath = f"{bench_dir}5点_{loop}.csv")
-	# f = n.train(max_n_eval = n_eval, n_batch = 10, batch_size = batch_size)
-
-	# lr = 0.01
-	# n = greedynn_mp_greedy.GreedyNN_MP_Greedy(
-	# 	img_shape = (p, n_dim),
-	# 	evaluator = evaluator,
-	# 	optimum = optimum,
-	# 	lr = lr,
-	# 	noise_dim = 3,
-	# 	filepath = f"{bench_dir}貪欲_{loop}.csv")
-	# f = n.train(max_n_eval = n_eval, n_batch = 10, batch_size = batch_size)
+	lr = 0.01
+	n = greedynn_mp_notrain.GreedyNN_MP_NT(
+		img_shape = (p, n_dim),
+		evaluator = evaluator,
+		optimum = optimum,
+		lr = lr,
+		noise_dim = 3,
+		filepath = f"{bench_dir}学習なし_{loop}.csv")
+	f = n.train(max_n_eval = n_eval, n_batch = 10, batch_size = batch_size)
 
 	# lr = 0.01
 	# n = greedynn_vpi.GreedyNN_VPI(
