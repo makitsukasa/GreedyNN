@@ -172,8 +172,7 @@ class GreedyNN_VPD():
 						n_p,
 					])
 
-				n_p = int(np.ceil(np.clip(self.img_shape[0] +
-					(self.img_shape[0] / 2) * np.log10(g_loss), 1, self.img_shape[0])))
+				n_p = self.img_shape[0] - self.img_shape[0] * min(n_eval, max_n_eval - 1) // max_n_eval
 
 		print(best_fitness)
 		if self.filepath:
