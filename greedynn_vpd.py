@@ -95,6 +95,7 @@ class GreedyNN_VPD():
 				if not self.fixed_noise:
 					noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
 				gen_imgs = self.generator.predict(noise)
+				gen_imgs_ignored = gen_imgs[:, :-n_p, :]
 				gen_imgs = gen_imgs[:, -n_p:, :]
 				gen_fitness = np.apply_along_axis(self.evaluator, 2, gen_imgs)
 
@@ -137,11 +138,11 @@ class GreedyNN_VPD():
 					np.argsort(fitness_pred_error.flatten()), fitness_pred_error.shape)
 
 				if n_p == 1:
-					y_raw = np.tile(best_img, (self.img_shape[0], 1))
+					y = np.append(np.tile([best_img],
+						(batch_size, 1, 1)), gen_imgs_ignored, axis=1)
 				else:
-					y_raw = np.append(teacher_img[1 - n_p:],
-						np.tile(best_img, (self.img_shape[0] - n_p + 1, 1)), axis=0)
-				y = np.tile(y_raw, (batch_size, 1, 1))
+					y = np.append(np.tile(np.append([best_img], teacher_img[1 - n_p:], axis=0),
+						(batch_size, 1, 1)), gen_imgs_ignored, axis=1)
 				g_loss = self.generator.train_on_batch(noise, y)
 
 				n_eval += batch_size * n_p
@@ -153,7 +154,7 @@ class GreedyNN_VPD():
 				if n_p == 1:
 					print(f"b {best_fitness:.3}")
 				else:
-					print(f"b {best_fitness:.3} t {teacher_fitness[-n_p:]}")
+					print(f"b {best_fitness:.3} t {teacher_fitness[1 - n_p:]}")
 
 				r = np.sqrt(np.sum((gen_imgs - self.optimum) ** 2, axis=2))
 				stddev = np.std(gen_imgs, axis=0)

@@ -11,7 +11,7 @@ import pso
 from problem.frontiers import *
 
 n_dim = 20
-n_loop = 10
+n_loop = 1
 
 # setting = (sphere_offset, [0.5] * n_dim, int(1e4), 3, 15, n_dim * 10) # -0.1
 # setting = (ktablet_offset, [0.5] * n_dim, int(5e4), 3, 15, n_dim * 10) # -2000
@@ -26,9 +26,9 @@ n_loop = 10
 # evaluator, n_eval = sphere_offset, int(5e4)
 # evaluator, n_eval = ktablet_offset, int(1e5)
 # evaluator, n_eval = bohachevsky_offset, int(1e5)
-# evaluator, n_eval = ackley_offset, int(1e5)
+evaluator, n_eval = ackley_offset, int(1e5)
 # evaluator, n_eval = schaffer_offset, int(5e5)
-evaluator, n_eval = rastrigin_offset, int(5e5)
+# evaluator, n_eval = rastrigin_offset, int(5e5)
 optimum, p, batch_size, n_particles = [0.5] * n_dim, 5, 15, n_dim * 100
 
 # y = np.array([0.0 for _ in range(n_dim)])
