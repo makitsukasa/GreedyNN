@@ -98,6 +98,9 @@ class GreedyNN_MP_distribution():
 				"fitness_mean",
 				"fitness_best",
 				"fitness_best_so_far",
+				"predict_a",
+				"predict_b",
+				"predict_c",
 			])
 
 		while n_eval < max_n_eval:
@@ -124,7 +127,7 @@ class GreedyNN_MP_distribution():
 				teacher_fitness_pred_error = np.copy(teacher_fitness)
 				for i in range(gen_imgs.shape[2]):
 					p = np.polyfit(gen_imgs[:, :, i].flatten(), gen_fitness.flatten(), 2)
-					if p[0] < 0:
+					if p[0] > 0:
 						p[0] = p[1] = 0
 					y_pred = (p[0] * gen_imgs[:, :, i] ** 2 +
 						p[1] * gen_imgs[:, :, i] + p[2]) / gen_imgs.shape[2]
@@ -163,8 +166,9 @@ class GreedyNN_MP_distribution():
 				print(f"b {best_fitness:.3} t {teacher_fitness}")
 
 				r = np.sqrt(np.sum((best_img - self.optimum) ** 2))
+				p = np.polyfit(gen_imgs[:, :, 0].flatten(), gen_fitness.flatten(), 2)
 				stddev = np.std(best_img, axis=0)
-				print("r:", r, ", stddev:", np.mean(stddev))
+				print("r:", r, ", stddev:", np.mean(stddev), ", p:", p)
 
 				if self.filepath:
 					csv_writer.writerow([
@@ -176,18 +180,30 @@ class GreedyNN_MP_distribution():
 						np.mean(gen_fitness),
 						gen_fitness[ascending_indice][-1],
 						best_fitness,
+						p[0],
+						p[1],
+						p[2],
 					])
+
+				# if self.filepath_distribution_after:
+				# 	os.makedirs(os.path.dirname("benchmark/distribution"), exist_ok=True)
+				# 	f_ = open(f"benchmark/distribution/{n_eval}.csv", mode = "w")
+				# 	csv_writer_ = csv.writer(f_)
+				# 	for _ in range(10):
+				# 		noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
+				# 		gen_imgs = self.generator.predict(noise)
+				# 		gen_imgs.reshape(-1, gen_imgs.shape[2])
+				# 		for row in gen_imgs.reshape(-1, gen_imgs.shape[2]):
+				# 			csv_writer_.writerow(row)
+				# 	f_.close()
 
 				if self.filepath_distribution_after:
 					os.makedirs(os.path.dirname("benchmark/distribution"), exist_ok=True)
 					f_ = open(f"benchmark/distribution/{n_eval}.csv", mode = "w")
 					csv_writer_ = csv.writer(f_)
-					for _ in range(10):
-						noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
-						gen_imgs = self.generator.predict(noise)
-						gen_imgs.reshape(-1, gen_imgs.shape[2])
-						for row in gen_imgs.reshape(-1, gen_imgs.shape[2]):
-							csv_writer_.writerow(row)
+					csv_writer_.writerow(p)
+					csv_writer_.writerow(gen_imgs[:, :, 0].flatten())
+					csv_writer_.writerow(gen_fitness.flatten())
 					f_.close()
 
 		print(best_fitness)
