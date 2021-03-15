@@ -112,7 +112,7 @@ class GreedyNN_VPD():
 				teacher_fitness_pred_error = np.copy(teacher_fitness)
 				for i in range(gen_imgs.shape[2]):
 					p = np.polyfit(gen_imgs[:, :, i].flatten(), gen_fitness.flatten(), 2)
-					if p[0] < 0:
+					if p[0] > 0:
 						p[0] = p[1] = 0
 					y_pred = (p[0] * gen_imgs[:, :, i] ** 2 +
 						p[1] * gen_imgs[:, :, i] + p[2]) / gen_imgs.shape[2]
