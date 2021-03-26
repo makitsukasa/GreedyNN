@@ -185,26 +185,26 @@ class GreedyNN_MP_distribution():
 						p[2],
 					])
 
-				# if self.filepath_distribution_after:
-				# 	os.makedirs(os.path.dirname("benchmark/distribution"), exist_ok=True)
-				# 	f_ = open(f"benchmark/distribution/{n_eval}.csv", mode = "w")
-				# 	csv_writer_ = csv.writer(f_)
-				# 	for _ in range(10):
-				# 		noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
-				# 		gen_imgs = self.generator.predict(noise)
-				# 		gen_imgs.reshape(-1, gen_imgs.shape[2])
-				# 		for row in gen_imgs.reshape(-1, gen_imgs.shape[2]):
-				# 			csv_writer_.writerow(row)
-				# 	f_.close()
-
 				if self.filepath_distribution_after:
 					os.makedirs(os.path.dirname("benchmark/distribution"), exist_ok=True)
 					f_ = open(f"benchmark/distribution/{n_eval}.csv", mode = "w")
 					csv_writer_ = csv.writer(f_)
-					csv_writer_.writerow(p)
-					csv_writer_.writerow(gen_imgs[:, :, 0].flatten())
-					csv_writer_.writerow(gen_fitness.flatten())
+					for _ in range(10):
+						noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
+						gen_imgs = self.generator.predict(noise)
+						gen_imgs.reshape(-1, gen_imgs.shape[2])
+						for row in gen_imgs.reshape(-1, gen_imgs.shape[2]):
+							csv_writer_.writerow(row)
 					f_.close()
+
+				# if self.filepath_distribution_after:
+				# 	os.makedirs(os.path.dirname("benchmark/distribution"), exist_ok=True)
+				# 	f_ = open(f"benchmark/distribution/{n_eval}.csv", mode = "w")
+				# 	csv_writer_ = csv.writer(f_)
+				# 	csv_writer_.writerow(p)
+				# 	csv_writer_.writerow(gen_imgs[:, :, 0].flatten())
+				# 	csv_writer_.writerow(gen_fitness.flatten())
+				# 	f_.close()
 
 		print(best_fitness)
 		if self.filepath:

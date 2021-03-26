@@ -2,6 +2,7 @@
 import sys
 import csv
 import numpy as np
+# import tensorflow as tf
 
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout
 from keras.layers import BatchNormalization, Activation, ZeroPadding2D
@@ -54,6 +55,7 @@ class GreedyNN_MP():
 		model.add(BatchNormalization(momentum=0.8))
 		model.add(Dense(
 			np.prod(n_unit), activation='linear', kernel_initializer=RandomUniform(-1,1)))
+			# np.prod(n_unit), activation=lambda x: tf.math.tanh(x/2), kernel_initializer=RandomUniform(-1,1)))
 		model.add(Reshape(self.img_shape))
 
 		model.summary()
@@ -135,8 +137,7 @@ class GreedyNN_MP():
 
 				y_raw = np.append([best_img], teacher_img, axis=0)
 				y = np.tile(y_raw, (batch_size, 1, 1))
-				for _ in range(1):
-					g_loss = self.generator.train_on_batch(noise, y)
+				g_loss = self.generator.train_on_batch(noise, y)
 
 				n_eval += batch_size * self.img_shape[0]
 
