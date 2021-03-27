@@ -1,4 +1,4 @@
-# https://gist.github.com/tstreamDOTh/4af1d6b5a641deda16641181aa1e9ee8
+# https://gist.github.com/tstreamDOTh/4af1d6b5a641deda16641181aa1e9ee8 を改造したもの
 
 import random
 import csv

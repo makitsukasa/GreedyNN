@@ -15,6 +15,7 @@ import warnings
 warnings.simplefilter('ignore', np.RankWarning)
 np.set_printoptions(formatter={'float': '{:.3}'.format})
 
+# greedynn_mp.pyの5点固定とせず探索が進むにつれてgoodを増やす
 class GreedyNN_VPI():
 	def __init__(
 			self,
@@ -62,6 +63,12 @@ class GreedyNN_VPI():
 
 	def train(self, max_n_eval, n_batch = 10, batch_size = 10):
 		print('Number of batches:', n_batch)
+		"""
+		Variables
+			n_p Generatorの出力個体数
+			gen_imgs_ignored 使わなかった個体
+			他はgreedynn_mp.pyと同じ
+		"""
 		best_fitness = np.NINF
 		best_img = np.random.uniform(-1.0, 1.0, (self.img_shape[1]))
 		teacher_fitness = np.full((self.img_shape[0] - 1), np.NINF)
@@ -88,10 +95,7 @@ class GreedyNN_VPI():
 
 		while n_eval < max_n_eval:
 			for iteration in range(n_batch):
-				# ---------------------
-				#  Generator learning
-				# ---------------------
-				# pickup images from generator
+				# 個体を生成
 				if not self.fixed_noise:
 					noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
 				gen_imgs = self.generator.predict(noise)
@@ -99,15 +103,14 @@ class GreedyNN_VPI():
 				gen_imgs = gen_imgs[:, -n_p:, :]
 				gen_fitness = np.apply_along_axis(self.evaluator, 2, gen_imgs)
 
-				# swap
+				# bestを更新
 				ascending_indice = np.unravel_index(
 					np.argsort(gen_fitness.flatten()), gen_fitness.shape)
 				if gen_fitness[ascending_indice][-1] > best_fitness:
 					best_fitness = gen_fitness[ascending_indice][-1]
 					best_img = gen_imgs[ascending_indice][-1]
 
-				# Train the generator
-				# 近似
+				# teacherの更新 ここから
 				fitness_pred_error = np.copy(gen_fitness)
 				teacher_fitness_pred_error = np.copy(teacher_fitness)
 				for i in range(gen_imgs.shape[2]):
@@ -133,10 +136,9 @@ class GreedyNN_VPI():
 
 				teacher_img = vstacked_imgs[error_ascending_indice]
 				teacher_fitness = vstacked_fitnesses[error_ascending_indice]
+				# teacherの更新 ここまで
 
-				gen_error_ascending_indice = np.unravel_index(
-					np.argsort(fitness_pred_error.flatten()), fitness_pred_error.shape)
-
+				# Generatorの学習
 				if n_p == 1:
 					y = np.append(np.tile([best_img],
 						(batch_size, 1, 1)), gen_imgs_ignored, axis=1)
@@ -147,7 +149,7 @@ class GreedyNN_VPI():
 
 				n_eval += batch_size * n_p
 
-				# progress
+				# 出力
 				print ("eval:%d/%d, iter:%d/%d, [G loss: %f, n_p: %d] [mean: %f best: %f]" %
 					(n_eval, max_n_eval, iteration+1, n_batch,
 					g_loss, n_p, np.mean(gen_fitness), best_fitness))
@@ -173,6 +175,7 @@ class GreedyNN_VPI():
 						n_p,
 					])
 
+				# n_pを変える 最大評価回数と今の評価回数を考えてだんだん増やす
 				n_p = self.img_shape[0] * min(n_eval, max_n_eval - 1) // max_n_eval + 1
 
 		print(best_fitness)

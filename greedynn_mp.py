@@ -16,7 +16,7 @@ import warnings
 warnings.simplefilter('ignore', np.RankWarning)
 np.set_printoptions(formatter={'float': '{:.3}'.format})
 
-# GreedyNN 多点
+# 提案法 多点
 class GreedyNN_MP():
 	def __init__(
 			self,

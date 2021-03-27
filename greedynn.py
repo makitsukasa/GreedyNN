@@ -11,7 +11,7 @@ from keras.models import Sequential, Model
 from keras.optimizers import Adam
 from keras.initializers import RandomUniform
 
-# Similar to CheatyNN, but use best_img instead of y.
+# 提案法 1点
 class GreedyNN():
 	def __init__(
 			self,
@@ -22,6 +22,11 @@ class GreedyNN():
 			noise_dim = 100,
 			fixed_noise = False,
 			filepath = None):
+		"""
+		Parameters
+			img_shape   [0]:Generatorの出力個体数(1で固定)，[1]:個体の次元数
+			他はgreedynn_mp.pyと同じ
+		"""
 		self.img_shape = img_shape
 		self.noise_dim = noise_dim
 		self.evaluator = evaluator
@@ -78,20 +83,17 @@ class GreedyNN():
 
 		while n_eval < max_n_eval:
 			for iteration in range(n_batch):
-				# ---------------------
-				#  Generator learning
-				# ---------------------
-				# pickup images from generator
+				# 個体を生成
 				if not self.fixed_noise:
 					noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
 				gen_imgs = self.generator.predict(noise)
 				gen_imgs_fitness = np.apply_along_axis(self.evaluator, 2, gen_imgs)
 
-				# Train the generator
+				# Generatorの学習
 				y = np.tile(best_img, (batch_size, self.img_shape[0], 1))
 				g_loss = self.generator.train_on_batch(noise, y)
 
-				# swap
+				# bestを更新
 				best_index = np.unravel_index(np.argmax(gen_imgs_fitness), gen_imgs_fitness.shape)
 				if gen_imgs_fitness[best_index] > best_fitness:
 					best_fitness = gen_imgs_fitness[best_index]
@@ -99,7 +101,7 @@ class GreedyNN():
 
 				n_eval += batch_size
 
-				# progress
+				# 出力
 				print("eval:%d/%d, iter:%d/%d, [G loss: %f] [mean: %f best: %f]" %
 					(n_eval, max_n_eval, iteration+1, n_batch,
 					g_loss, np.mean(gen_imgs_fitness), best_fitness))

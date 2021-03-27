@@ -16,6 +16,7 @@ import warnings
 warnings.simplefilter('ignore', np.RankWarning)
 np.set_printoptions(formatter={'float': '{:.3}'.format})
 
+# greedynn_mp.pyと同じもの 個体の変数値を全部csvに書き出す
 class GreedyNN_MP_distribution():
 	def __init__(
 			self,
@@ -38,8 +39,6 @@ class GreedyNN_MP_distribution():
 		self.filepath_distribution_after = filepath_distribution_after
 
 		optimizer = Adam(lr)
-
-		# Generator model
 		self.generator = self.build_generator()
 		self.generator.compile(loss='mean_absolute_error', optimizer=optimizer)
 
@@ -60,17 +59,14 @@ class GreedyNN_MP_distribution():
 		model.add(Dense(
 			np.prod(n_unit), activation='linear', kernel_initializer=RandomUniform(-1,1)))
 		model.add(Reshape(self.img_shape))
-
 		model.summary()
-
 		return model
 
 	def train(self, max_n_eval, n_batch = 10, batch_size = 10):
-		print('Number of batches:', n_batch)
-		best_fitness = np.NINF
 		best_img = np.random.uniform(-1.0, 1.0, (self.img_shape[1]))
-		teacher_fitness = np.full((self.img_shape[0] - 1), np.NINF)
+		best_fitness = np.NINF
 		teacher_img = np.full((self.img_shape[0] - 1, self.img_shape[1]), np.NAN)
+		teacher_fitness = np.full((self.img_shape[0] - 1), np.NINF)
 		noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
 		n_eval = 0
 
@@ -105,24 +101,17 @@ class GreedyNN_MP_distribution():
 
 		while n_eval < max_n_eval:
 			for iteration in range(n_batch):
-				# ---------------------
-				#  Generator learning
-				# ---------------------
-				# pickup images from generator
 				if not self.fixed_noise:
 					noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
 				gen_imgs = self.generator.predict(noise)
 				gen_fitness = np.apply_along_axis(self.evaluator, 2, gen_imgs)
 
-				# swap
 				ascending_indice = np.unravel_index(
 					np.argsort(gen_fitness.flatten()), gen_fitness.shape)
 				if gen_fitness[ascending_indice][-1] > best_fitness:
 					best_fitness = gen_fitness[ascending_indice][-1]
 					best_img = gen_imgs[ascending_indice][-1]
 
-				# Train the generator
-				# 近似
 				fitness_pred_error = np.copy(gen_fitness)
 				teacher_fitness_pred_error = np.copy(teacher_fitness)
 				for i in range(gen_imgs.shape[2]):
@@ -145,21 +134,13 @@ class GreedyNN_MP_distribution():
 				error_ascending_indice = error_ascending_indice[np.where(
 					np.isfinite(vstacked_imgs).all(axis = 1) &
 					(vstacked_imgs != best_img).all(axis = 1))]
-
 				teacher_img = vstacked_imgs[error_ascending_indice][-teacher_img.shape[0]:]
 				teacher_fitness = vstacked_fitnesses[error_ascending_indice][-teacher_img.shape[0]:]
-
-				gen_error_ascending_indice = np.unravel_index(
-					np.argsort(fitness_pred_error.flatten()), fitness_pred_error.shape)
-
-				y_raw = np.append([best_img], teacher_img, axis=0)
-				y = np.tile(y_raw, (batch_size, 1, 1))
-				for _ in range(1):
-					g_loss = self.generator.train_on_batch(noise, y)
+				y = np.tile(np.append([best_img], teacher_img, axis=0), (batch_size, 1, 1))
+				g_loss = self.generator.train_on_batch(noise, y)
 
 				n_eval += batch_size * self.img_shape[0]
 
-				# progress
 				print ("eval:%d/%d, iter:%d/%d, [G loss: %f] [mean: %f best: %f]" %
 					(n_eval, max_n_eval, iteration+1, n_batch,
 					g_loss, np.mean(gen_fitness), best_fitness))
