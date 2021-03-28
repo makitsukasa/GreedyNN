@@ -1,10 +1,8 @@
 import os
 import numpy as np
+import swapgan
 import greedynn
 import greedynn_mp
-import greedynn_mp_fixed
-import greedynn_mp_greedy
-import greedynn_mp_notrain
 import greedynn_mp_distribution
 import greedynn_vpi
 import greedynn_vpd
