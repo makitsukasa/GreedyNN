@@ -14,12 +14,12 @@ from problem.frontiers import *
 n_dim = 20
 n_loop = 10
 
-evaluator, n_eval = sphere_offset, int(5e4)
-# evaluator, n_eval = ktablet_offset, int(1e5)
-# evaluator, n_eval = bohachevsky_offset, int(1e5)
-# evaluator, n_eval = ackley_offset, int(1e5)
-# evaluator, n_eval = schaffer_offset, int(5e5)
-# evaluator, n_eval = rastrigin_offset, int(5e5)
+evaluator = sphere_offset; n_eval = int(5e4)
+# evaluator = ktablet_offset; n_eval = int(1e5)
+# evaluator = bohachevsky_offset; n_eval = int(1e5)
+# evaluator = ackley_offset; n_eval = int(1e5)
+# evaluator = schaffer_offset; n_eval = int(5e5)
+# evaluator = rastrigin_offset; n_eval = int(5e5)
 optimum = [0.5] * n_dim; p = 5; batch_size = 15; n_particles = n_dim * 100
 # n_eval = 75 * 100
 
