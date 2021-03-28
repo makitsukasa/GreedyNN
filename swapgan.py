@@ -14,7 +14,7 @@ from keras.models import Sequential, Model
 from keras.optimizers import Adam
 
 # GANを用いた最適化法
-# 良い個体を保持して
+# 良い個体を訓練データとする．生成した個体が良い個体なら適宜入れ替える．
 class SwapGAN():
 	def __init__(self, img_shape, pop_img, evaluator, noise_dim = 100, fixed_noise = False):
 		"""
@@ -146,7 +146,7 @@ class SwapGAN():
 				g_loss = self.combined.train_on_batch(noise, valid_y)
 				# Generatorの学習 ここまで
 
-				# 良い個体が生成されたときは残しておく個体と入れ替え
+				# 良い個体が生成されたときは保持しておく個体と入れ替え
 				self.pop_img = np.append(self.pop_img, gen_img, axis = 0)
 				gen_img_fitness = [self.evaluator(d) for d in gen_img]
 				pop_fitness = np.append(pop_fitness, gen_img_fitness)
