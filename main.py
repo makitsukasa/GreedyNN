@@ -49,36 +49,13 @@ for loop in range(n_loop):
 		filepath = f"{bench_dir}提案法_{loop}.csv")
 	f = n.train(max_n_eval = n_eval, n_batch = 10, batch_size = batch_size)
 
-	lr = 0.01
-	n = greedynn_mp_fixed.GreedyNN_MP_FIXED(
-		img_shape = (p, n_dim),
-		evaluator = evaluator,
+	f = pso.pso(
+		evaluator = lambda x: -evaluator(np.array(x, dtype=np.float)),
 		optimum = optimum,
-		lr = lr,
-		noise_dim = 3,
-		filepath = f"{bench_dir}goodが最適解_{loop}.csv")
-	f = n.train(train_data = np.array([[[0.5] * n_dim] * p] * batch_size),
-		max_n_eval = n_eval, n_batch = 10, batch_size = batch_size)
-
-	lr = 0.01
-	n = greedynn_mp_fixed.GreedyNN_MP_FIXED(
-		img_shape = (p, n_dim),
-		evaluator = evaluator,
-		optimum = optimum,
-		lr = lr,
-		noise_dim = 3,
-		filepath = f"{bench_dir}goodが遠い_{loop}.csv")
-	f = n.train(train_data = np.array([[0.5] * n_dim + [0.0] * n_dim + [0.0] * n_dim +
-		[1.0] * n_dim + [1.0] * n_dim] * batch_size).reshape(batch_size, p, n_dim),
-		max_n_eval = n_eval, n_batch = 10, batch_size = batch_size)
-
-	# f = pso.pso(
-	# 	evaluator = lambda x: -evaluator(np.array(x, dtype=np.float)),
-	# 	optimum = optimum,
-	# 	n_dim = n_dim,
-	# 	n_particles = n_particles,
-	# 	max_n_eval = n_eval,
-	# 	filepath = f"{bench_dir}PSO_{loop}.csv")
+		n_dim = n_dim,
+		n_particles = n_particles,
+		max_n_eval = n_eval,
+		filepath = f"{bench_dir}PSO_{loop}.csv")
 
 	# lr = 0.01
 	# n = greedynn_mp_distribution.GreedyNN_MP_distribution(
