@@ -49,7 +49,7 @@ class GreedyNN_MP():
 		self.generator = self.build_generator()
 		self.generator.compile(loss='mean_absolute_error', optimizer=optimizer)
 
-	# Generatorを生成
+	# Generatorを生成 コンストラクタからのみ呼ばれる
 	def build_generator(self):
 		noise_shape = (self.noise_dim,)
 		n_unit = self.img_shape[0] * self.img_shape[1]

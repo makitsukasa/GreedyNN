@@ -10,7 +10,7 @@ import pso
 from problem.frontiers import *
 
 n_dim = 20
-n_loop = 10
+n_loop = 1
 
 evaluator = sphere_offset; n_eval = int(5e4)
 # evaluator = ktablet_offset; n_eval = int(1e5)
@@ -19,7 +19,7 @@ evaluator = sphere_offset; n_eval = int(5e4)
 # evaluator = schaffer_offset; n_eval = int(5e5)
 # evaluator = rastrigin_offset; n_eval = int(5e5)
 optimum = [0.5] * n_dim; p = 5; batch_size = 15; n_particles = n_dim * 100
-# n_eval = 75 * 100
+n_eval = 75 * 100
 
 # y = np.array([0.0 for _ in range(n_dim)])
 # y = np.array([0.5 for _ in range(n_dim)])
@@ -39,23 +39,30 @@ for loop in range(n_loop):
 	# 	filepath = f"{bench_dir}1点_{loop}.csv")
 	# f = n.train(max_n_eval = n_eval, n_batch = 10, batch_size = batch_size)
 
-	lr = 0.01
-	n = greedynn_mp.GreedyNN_MP(
-		img_shape = (p, n_dim),
-		evaluator = evaluator,
-		optimum = optimum,
-		lr = lr,
-		noise_dim = 3,
-		filepath = f"{bench_dir}提案法_{loop}.csv")
-	f = n.train(max_n_eval = n_eval, n_batch = 10, batch_size = batch_size)
+	# lr = 0.01
+	# n = greedynn_mp.GreedyNN_MP(
+	# 	img_shape = (p, n_dim),
+	# 	evaluator = evaluator,
+	# 	optimum = optimum,
+	# 	lr = lr,
+	# 	noise_dim = 3,
+	# 	filepath = f"{bench_dir}提案法_{loop}.csv")
+	# f = n.train(max_n_eval = n_eval, n_batch = 10, batch_size = batch_size)
 
-	f = pso.pso(
-		evaluator = lambda x: -evaluator(np.array(x, dtype=np.float)),
-		optimum = optimum,
-		n_dim = n_dim,
-		n_particles = n_particles,
-		max_n_eval = n_eval,
-		filepath = f"{bench_dir}PSO_{loop}.csv")
+	# f = pso.pso(
+	# 	evaluator = lambda x: -evaluator(np.array(x, dtype=np.float)),
+	# 	optimum = optimum,
+	# 	n_dim = n_dim,
+	# 	n_particles = n_particles,
+	# 	max_n_eval = n_eval,
+	# 	filepath = f"{bench_dir}PSO_{loop}.csv")
+
+	n = swapgan.SwapGAN(
+		img_shape = (n_dim, 1),
+		pop_img = np.random.uniform(-1, 1, (20, n_dim, 1)),
+		evaluator = evaluator,
+		noise_dim = 1)
+	f = n.train(max_n_eval = n_eval, n_batch = 10, batch_size = 20)
 
 	# lr = 0.01
 	# n = greedynn_mp_distribution.GreedyNN_MP_distribution(

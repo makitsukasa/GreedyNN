@@ -14,7 +14,7 @@ from keras.models import Sequential, Model
 from keras.optimizers import Adam
 
 # GANを用いた最適化法
-# 良い個体を訓練データとする．生成した個体が良い個体なら適宜入れ替える．
+# 良い個体を訓練データとする．生成した個体が良い個体だったら適宜訓練データとする個体を入れ替える．
 class SwapGAN():
 	def __init__(self, img_shape, pop_img, evaluator, noise_dim = 100, fixed_noise = False):
 		"""
@@ -41,10 +41,10 @@ class SwapGAN():
 
 		self.generator = self.build_generator()
 
-		self.combined = self.build_combined1()
+		self.combined = self.build_combined()
 		self.combined.compile(loss='binary_crossentropy', optimizer=optimizer)
 
-	# Generatorを生成
+	# Generatorを生成 コンストラクタからのみ呼ばれる
 	def build_generator(self):
 		noise_shape = (self.noise_dim,)
 		model = Sequential()
@@ -63,7 +63,7 @@ class SwapGAN():
 		model.summary()
 		return model
 
-	# Discrominatorを生成
+	# Discriminatorを生成 コンストラクタからのみ呼ばれる
 	def build_discriminator(self):
 		model = Sequential()
 		if len(self.img_shape) != 1:
@@ -76,42 +76,36 @@ class SwapGAN():
 		model.summary()
 		return model
 
-	def build_combined1(self):
+	# GeneratorとDiscriminatorを繋げたモデルを生成 コンストラクタからのみ呼ばれる
+	def build_combined(self):
 		self.discriminator.trainable = False
 		model = Sequential([self.generator, self.discriminator])
 		return model
 
-	def build_combined2(self):
-		z = Input(shape=(self.noise_dim,))
-		img = self.generator(z)
-		self.discriminator.trainable = False
-		valid = self.discriminator(img)
-		model = Model(z, valid)
-		model.summary()
-		return model
-
-	def train(self, n_epoch, batch_size=128):
+	def train(self, max_n_eval, n_batch, batch_size=128):
 		"""
 		学習
 
 		Parameters
-			n_epoch    エポック数
+			max_n_eval 目的関数の最大呼出回数
+			n_batch    バッチ数
 			batch_size バッチサイズ
 
 		Variables
+			n_epoch    エポック数
 			self.pop_img      popの個体 ソートしてある
 			pop_size          popの個体数
 			pop_fitness       popの評価値
 			halved_batch_size batch_size // 2
-			n_batch           バッチ数
 			noise             Generatorの入力
 		"""
 
+		n_epoch = max_n_eval * 2 // (n_batch * batch_size)
 		pop_size = self.pop_img.shape[0]
 		halved_batch_size = batch_size // 2
-		n_batch = pop_size // halved_batch_size
 		pop_fitness = np.array([self.evaluator(d) for d in self.pop_img])
 		noise = np.random.normal(0, 1, (batch_size, self.noise_dim))
+		n_eval = len(pop_fitness)
 
 		# popをソート
 		indices = np.argsort(-pop_fitness)
@@ -154,10 +148,12 @@ class SwapGAN():
 				self.pop_img = self.pop_img[indices]
 				pop_fitness = pop_fitness[indices]
 
+				n_eval += len(gen_img_fitness)
+
 				# 出力
 				# print ("epoch:%d, iter:%d,  [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epoch, iteration, d_loss[0], 100*d_loss[1], g_loss))
-				print ("epoch:%d, iter:%d,  [D loss: %f, acc.: %.2f%%] [G loss: %f] [mean: %f best: %f]" %
-					(epoch, iteration, d_loss[0], 100*d_loss[1], g_loss, np.mean(gen_img_fitness), pop_fitness[0]))
+				print ("epoch:%d, iter:%d, %d [D loss: %f, acc.: %.2f%%] [G loss: %f] [mean: %f best: %f]" %
+					(epoch, iteration, n_eval, d_loss[0], 100*d_loss[1], g_loss, np.mean(gen_img_fitness), pop_fitness[0]))
 
 				# print([self.evaluator(d) for d in gen_img], pop_fitness[0])
 
@@ -173,7 +169,7 @@ if __name__ == '__main__':
 
 	gan = SwapGAN(
 		img_shape = (10, 1),
-		pop_img = np.random.uniform(-1.0, 1.0, (1000, 10, 1)),
+		pop_img = np.random.uniform(-1.0, 1.0, (100, 10, 1)),
 		evaluator = sphere_offset,
 		noise_dim = 1)
 	f = gan.train(n_epoch=20, batch_size=100)
